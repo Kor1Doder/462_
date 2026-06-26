@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# uv (uv.lock IS tracked; the cache is local)
+.uv-cache/
+
+# Editors / agents
+.vscode/
+.idea/
+*.swp
+*.swo
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# External source checkouts — read-only references, large, not redistributed
+# Must be cloned manually before working on protocol/streamer/transport code.
+# See README.md and CLAUDE.md §11.
+/reference/
+
+# HIL captures and replay artifacts can be large or machine-specific
+/tools/replay/captures/

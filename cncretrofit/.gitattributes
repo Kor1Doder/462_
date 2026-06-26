@@ -1,0 +1,8 @@
+# Normalize line endings to LF in the repository and the working tree on every
+# platform. Without this, Windows checkouts get CRLF while Linux gets LF, which
+# makes `ruff format --check` and the Windows/Linux CI matrix disagree
+# (CLAUDE.md §6: cross-platform CI from M0).
+* text=auto eol=lf
+
+# Lockfile is generated; keep diffs collapsed in review tools.
+uv.lock linguist-generated=true

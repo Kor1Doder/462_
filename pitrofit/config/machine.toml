@@ -1,0 +1,56 @@
+# EMCO CNC mill — machine calibration and limits.
+#
+# Loaded by ``cncctl.config_io`` (M8). On controller boot the facade pushes
+# these values to grblHAL and verifies them via ``$$`` per CLAUDE.md §2.
+#
+# WARNING: every numeric value in this file is a PLACEHOLDER. Do not guess.
+# Fill in during commissioning by reading DIP switches, measuring travel,
+# and running the calibration flows in M11. See CLAUDE.md §11:
+#   "Ask before assuming hardware specifics. ... No guessing."
+
+[machine]
+name = "EMCO mill (retrofit)"
+
+[transport]
+# Default; the connect path must accept overrides at runtime.
+# USB-CDC device the grblHAL Pico enumerates as on the Raspberry Pi. If you wire
+# more than one ACM device, pin a stable name via the udev rule in deploy/.
+default_port         = "/dev/ttyACM0"
+baudrate             = 115200           # USB-CDC ignores baud; kept for clarity
+# §5.1: VERIFY against ``$I`` / the grblHAL build configuration before going live.
+rx_buffer_bytes      = 128
+
+# Per-axis: 57BHH100 NEMA23 + CWD 556 driver. Microstepping is set in hardware
+# via the driver's DIP switches; mirror it here so derived steps/mm is auditable.
+[axes.x]
+microsteps         = 0      # TODO: read DIP switches on CWD 556 (X)
+lead_screw_mm      = 0.0    # TODO: measure lead per revolution
+steps_per_mm       = 0.0    # TODO: derived; pushed as $100
+max_rate_mm_min    = 0      # TODO: empirical; $110
+acceleration_mm_s2 = 0      # TODO: empirical; $120
+soft_limit_mm      = 0.0    # TODO: measured travel; $130
+
+[axes.y]
+microsteps         = 0
+lead_screw_mm      = 0.0
+steps_per_mm       = 0.0
+max_rate_mm_min    = 0
+acceleration_mm_s2 = 0
+soft_limit_mm      = 0.0
+
+[axes.z]
+microsteps         = 0
+lead_screw_mm      = 0.0
+steps_per_mm       = 0.0
+max_rate_mm_min    = 0
+acceleration_mm_s2 = 0
+soft_limit_mm      = 0.0
+
+[motion]
+# $11 — fed into the motion simulator (M10) so the host-side pre-flight
+# bounding box matches the controller's actual planner.
+junction_deviation_mm = 0.0  # TODO
+
+[homing]
+# $22 etc. — fill in once the limit-switch wiring is verified.
+enabled = false  # TODO: flip true once limit switches are wired and tested

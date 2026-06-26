@@ -1,0 +1,139 @@
+[project]
+name = "cncctl"
+version = "0.0.0"
+description = "Headless Python controller for an EMCO CNC mill running grblHAL over USB-CDC"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "eefeoglu", email = "efe.efeoglu@metu.edu.tr" }]
+keywords = ["cnc", "grbl", "grblhal", "g-code", "retrofit", "emco"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Manufacturing",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+# Runtime dependencies are added inside the milestone that requires them:
+#   M10 -> pyGCodeDecode, matplotlib
+dependencies = [
+    # M1: typed messages across boundaries (CLAUDE.md §3.4). msgspec frozen
+    # Structs model immutable protocol messages and keep the 10 Hz status
+    # path cheap; ships aarch64 wheels for the Raspberry Pi target.
+    "msgspec>=0.18",
+    # M2: async serial transport over USB-CDC (CLAUDE.md §3.3, §11 pre-approved).
+    "pyserial-asyncio>=0.6",
+    # M2: structured JSON logging (CLAUDE.md §9).
+    "structlog>=24.1",
+    # M6 note: gcodeparser (the originally-named library) was evaluated and
+    # rejected — its line regex requires every line to start with G/M/T, so it
+    # silently drops bare-coordinate modal moves and (...) comments. Losing
+    # moves would defeat M10's soft-limit pre-flight (§8.2), so cncctl.gcode
+    # uses an in-house tokenizer instead. See CLAUDE.md §7 M6.
+    # M10: 2D toolpath rendering. matplotlib is far lighter than pyGCodeDecode's
+    # vtk/pyvista tree and ships aarch64 wheels for the Pi. The simulate/analyze
+    # core is pure Python; only render.py imports matplotlib. See viz/README.md.
+    "matplotlib>=3.8",
+    # M10 (workpiece): the heightmap material-removal engine (viz/workpiece.py)
+    # carves a stock Z-map as the tool follows the trace — vectorised in numpy so
+    # a ~25k-cell grid carves in well under a second. Already present transitively
+    # via matplotlib; declared directly because we import it. aarch64 wheels ship.
+    # simulate/analyze (the safety-critical soft-limit path) stay pure Python.
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+# Desktop GUI (examples/gui.py). Optional — the headless core never imports it.
+# PySide6: official Qt6 bindings (The Qt Company), LGPL-3.0, actively maintained.
+# pyqtgraph + PyOpenGL: GPU-accelerated 3D for the workpiece view (smooth orbit
+# of the carved heightmap; matplotlib's mplot3d can't do interactive 3D). Both
+# are pure-Python and far lighter than the vtk tree rejected in M10 — and they
+# live ONLY in this GUI extra, so the headless Pi/core library never pulls them.
+gui = ["pyside6>=6.6", "pyqtgraph>=0.13", "PyOpenGL>=3.1"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.7.4",
+    "mypy>=1.13",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "hypothesis>=6.115",
+    "pre-commit>=4.0",
+]
+
+[project.scripts]
+cncctl = "cncctl.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cncctl"]
+
+# ----- ruff ------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+# Runnable demo scripts: kept readable, not held to library lint rules.
+extend-exclude = ["examples"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",  # pycodestyle / pyflakes
+    "I",            # isort
+    "UP",           # pyupgrade
+    "B",            # bugbear
+    "A",            # builtin shadowing
+    "C4",           # comprehensions
+    "SIM",          # simplifications
+    "PL",           # pylint subset
+    "RUF",          # ruff-specific
+    "ASYNC",        # async pitfalls (CLAUDE.md §3.3)
+    "TID",          # tidy imports
+]
+ignore = [
+    "PLR0913",  # too many arguments — public APIs sometimes need them
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004"]  # magic values are fine in tests
+
+[tool.ruff.lint.isort]
+known-first-party = ["cncctl", "tools"]
+
+# ----- mypy ------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+# tools/grblhal_sim is real (type-checked) code: the Tier-2 test simulator.
+files = ["src/cncctl", "tools/grblhal_sim"]
+warn_unreachable = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_untyped_decorators = false
+
+# pyserial / pyserial-asyncio ship no type information.
+[[tool.mypy.overrides]]
+module = ["serial.*", "serial_asyncio.*"]
+ignore_missing_imports = true
+
+# ----- pytest ----------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+testpaths = ["tests"]
+# Make the repo root importable so tests can use the tools/grblhal_sim package.
+pythonpath = ["."]
+asyncio_mode = "auto"
+markers = [
+    "integration: Tier-2 tests against tools/grblhal_sim over a virtual COM pair",
+    "hil: Tier-3 hardware-in-the-loop tests, opt-in via CNCCTL_HIL=1",
+]

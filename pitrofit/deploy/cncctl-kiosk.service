@@ -1,0 +1,40 @@
+# systemd unit: boot straight into the cncctl operator panel as a kiosk.
+#
+# Placeholders (__CNC_USER__, __REPO_ROOT__, __XDG_CONFIG_HOME__) are substituted
+# by install.sh; the result is written to /etc/systemd/system/cncctl-kiosk.service.
+#
+# How it works: the service grabs VT1, and PAMName=login makes systemd-logind
+# open a real login session — that creates XDG_RUNTIME_DIR (/run/user/<uid>) and
+# assigns a seat, which labwc needs for DRM/libinput. labwc then starts with an
+# ISOLATED config home (its own autostart launches only our GUI — no desktop
+# panel, so nothing peeks through dialogs). systemd restarts it if it dies.
+[Unit]
+Description=cncctl CNC operator panel (labwc kiosk)
+Documentation=file://__REPO_ROOT__/deploy/README.md
+After=systemd-user-sessions.service plymouth-quit-wait.service getty@tty1.service
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+User=__CNC_USER__
+PAMName=login
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+StandardInput=tty
+StandardOutput=journal
+StandardError=journal
+WorkingDirectory=__REPO_ROOT__
+# Isolated config home: labwc reads __XDG_CONFIG_HOME__/labwc/{autostart,rc.xml},
+# which start only the cncctl GUI — never the desktop panel.
+Environment=XDG_CONFIG_HOME=__XDG_CONFIG_HOME__
+# Clear the user-quit sentinel on every (re)start / boot so the kiosk comes back
+# — while a user-demanded "Quit -> Desktop" leaves it set (we only `stop` then,
+# never `start`), keeping the panel down for the session.
+ExecStartPre=/bin/rm -f __CNC_HOME__/.cncctl-stop
+ExecStart=/usr/bin/labwc
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

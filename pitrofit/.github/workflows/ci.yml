@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# CLAUDE.md §6: the deployment target is Linux (Raspberry Pi OS, aarch64), so CI
+# runs on Linux only. GitHub's hosted runners are x86-64; the dependency wheels
+# we rely on (numpy, matplotlib, Qt) also ship aarch64, so the Pi install path is
+# validated on the device itself, not in CI.
+jobs:
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Sync dependencies (frozen)
+        run: uv sync --frozen
+
+      - name: Ruff lint
+        run: uv run ruff check
+
+      - name: Ruff format check
+        run: uv run ruff format --check
+
+      - name: Mypy (strict)
+        run: uv run mypy --strict src/cncctl tools/grblhal_sim
+
+      - name: Pytest (unit)
+        run: uv run pytest tests/unit -ra
+
+      - name: Pytest (integration — in-memory grblHAL simulator)
+        run: uv run pytest tests/integration -ra

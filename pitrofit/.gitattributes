@@ -1,0 +1,7 @@
+# LF line endings everywhere — the deployment target is Linux (Raspberry Pi OS)
+# and the shell scripts under deploy/ must stay LF to run.
+* text=auto eol=lf
+*.sh text eol=lf
+
+# Lockfile is generated; keep diffs collapsed in review tools.
+uv.lock linguist-generated=true

@@ -1,0 +1,29 @@
+# cncctl runtime dependencies — Raspberry Pi 5 (aarch64, Raspberry Pi OS Trixie).
+#
+# Install into a Python 3.12+ virtual environment (see deploy/README.md). Every
+# package below ships prebuilt aarch64 (manylinux) wheels, so installation on the
+# Pi is a fast download with no source compilation.
+#
+#     python3.12 -m venv .venv
+#     . .venv/bin/activate
+#     pip install -r requirements.txt    # third-party deps (this file)
+#     pip install -e . --no-deps         # the cncctl package itself
+#
+# This file lists only third-party libraries; cncctl lives in src/ and must be
+# installed too (the `pip install -e .` above), or `import cncctl` will fail.
+#
+# Version floors mirror pyproject.toml. For a byte-for-byte reproducible set,
+# use the pinned versions in uv.lock instead (`uv sync`).
+
+# --- headless core (always required) ---------------------------------------
+msgspec>=0.18           # typed protocol messages; frozen Structs (CLAUDE.md §3.4)
+pyserial-asyncio>=0.6   # async USB-CDC transport to the grblHAL Pico (§3.3)
+structlog>=24.1         # structured JSON logging (§9)
+matplotlib>=3.8         # 2D toolpath rendering + headless PNG export (M10)
+numpy>=1.26             # heightmap material-removal engine in viz/workpiece.py (M10)
+
+# --- desktop operator GUI (examples/gui.py) --------------------------------
+# The on-Pi CNC interface. Pulls in Qt6 (LGPL) + a GPU 3D workpiece view.
+pyside6>=6.6            # Qt6 bindings for the operator panel
+pyqtgraph>=0.13         # GPU-accelerated 3D workpiece surface
+PyOpenGL>=3.1           # OpenGL backing for the pyqtgraph 3D view

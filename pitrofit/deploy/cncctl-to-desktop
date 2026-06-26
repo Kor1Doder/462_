@@ -1,0 +1,19 @@
+#!/bin/sh
+# Switch from the cncctl kiosk to the Raspberry Pi desktop session.
+#
+# Installed to /usr/local/sbin/cncctl-to-desktop (root:root, 0755) by
+# deploy/install.sh and invoked by the GUI's "Quit -> Desktop" button through a
+# scoped NOPASSWD sudoers rule. Kept as a fixed root-owned file (not a path in
+# the user-writable repo) so the sudo grant can't be abused to run arbitrary
+# code as root.
+#
+# We must STOP the kiosk explicitly (NOT `isolate graphical.target`): graphical
+# .target pulls in multi-user.target, so an isolate would leave cncctl-kiosk
+# running, keeping seat0/tty1 busy — then lightdm can't autologin and falls back
+# to the password greeter. Stopping the kiosk frees the seat; lightdm then starts
+# fresh and autologins (autologin-user is set in /etc/lightdm/lightdm.conf).
+#
+# Run in a transient unit (systemd-run) so the switch survives the kiosk — and
+# the GUI process that called us — being torn down by the stop.
+exec systemd-run --no-block --collect /bin/sh -c \
+    'systemctl stop cncctl-kiosk.service && systemctl start lightdm.service'

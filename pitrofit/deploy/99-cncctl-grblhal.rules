@@ -1,0 +1,14 @@
+# udev rule: give the grblHAL Pico a stable name and the right permissions.
+#
+# The RP2040 USB-CDC port normally appears as /dev/ttyACM0, but the number can
+# shift if other ACM devices are present. This rule adds a stable symlink
+# /dev/grblhal pointing at the Pico, and grants the dialout group access.
+#
+# The Raspberry Pi Pico enumerates with Raspberry Pi's vendor id 2e8a. If your
+# grblHAL build reports a different VID/PID, read it with:
+#     udevadm info -a -n /dev/ttyACM0 | grep -E 'idVendor|idProduct'
+# and update the match below. Install with deploy/install.sh (or copy this file
+# to /etc/udev/rules.d/ and run `udevadm control --reload && udevadm trigger`).
+#
+# To use the stable name, set  default_port = "/dev/grblhal"  in machine.toml.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2e8a", SYMLINK+="grblhal", GROUP="dialout", MODE="0660"

@@ -1,0 +1,40 @@
+# Machine calibration and limits. Written by cncctl. See CLAUDE.md §2.
+
+[machine]
+name = "EMCO mill (retrofit)"
+
+[transport]
+default_port_windows = "COM3"
+default_port_linux = "/dev/ttyACM0"
+baudrate = 115200
+rx_buffer_bytes = 128
+
+[axes.x]
+microsteps = 0
+lead_screw_mm = 0.0
+steps_per_mm = 0.0
+max_rate_mm_min = 0.0
+acceleration_mm_s2 = 0.0
+soft_limit_mm = 0.0
+
+[axes.y]
+microsteps = 0
+lead_screw_mm = 0.0
+steps_per_mm = 0.0
+max_rate_mm_min = 0.0
+acceleration_mm_s2 = 0.0
+soft_limit_mm = 0.0
+
+[axes.z]
+microsteps = 0
+lead_screw_mm = 0.0
+steps_per_mm = 0.0
+max_rate_mm_min = 0.0
+acceleration_mm_s2 = 0.0
+soft_limit_mm = 0.0
+
+[motion]
+junction_deviation_mm = 0.0
+
+[homing]
+enabled = false
