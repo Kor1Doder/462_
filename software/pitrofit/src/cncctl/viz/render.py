@@ -1,4 +1,4 @@
-"""2D toolpath rendering (CLAUDE.md §7 M10).
+"""2D toolpath rendering.
 
 Renders a :class:`~cncctl.viz.simulate.Trace` as an XY plot using matplotlib's
 headless Agg backend (no GUI / display needed — suitable for a Pi or CI). Feed

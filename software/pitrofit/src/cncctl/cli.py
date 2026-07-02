@@ -1,4 +1,4 @@
-"""``cncctl`` command-line interface (CLAUDE.md §7 M11).
+"""``cncctl`` command-line interface.
 
 Currently exposes the calibration subcommands::
 
@@ -7,8 +7,8 @@ Currently exposes the calibration subcommands::
 
 The ``steps`` flow is two-step: it proposes the corrected ``$100``/``$101``/
 ``$102`` value, asks for confirmation (unless ``--yes``), then writes and
-verifies via ``$$`` (§8.7). User-facing output goes to stdout via a small
-writer (no library-level ``print``, §9).
+verifies via ``$$``. User-facing output goes to stdout via a small
+writer (no library-level ``print``,).
 """
 
 from __future__ import annotations

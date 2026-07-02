@@ -1,9 +1,9 @@
-"""Backlash measurement — a guided protocol (CLAUDE.md §7 M11).
+"""Backlash measurement — a guided protocol.
 
 Backlash (lost motion at reversal) is measured with a dial indicator. This
 module guides the operator through the measurement and reports the value; it
 does not write a setting, because grblHAL's backlash compensation is build-
-specific and CLAUDE.md §11 forbids guessing setting numbers.
+specific and the design forbids guessing setting numbers.
 """
 
 from __future__ import annotations

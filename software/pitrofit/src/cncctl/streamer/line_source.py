@@ -1,4 +1,4 @@
-"""G-code line sources for the streamer (CLAUDE.md §4 ``line_source.py``, §7 M4).
+"""G-code line sources for the streamer.
 
 Async iterators over program lines from various inputs. Each yields lines with
 trailing whitespace removed and blank lines skipped (sending a blank line only

@@ -1,11 +1,11 @@
-"""Protocol-level grblHAL device simulator (CLAUDE.md §6 Tier 2, §7 M7).
+"""Protocol-level grblHAL device simulator.
 
 A standalone model of grblHAL's *line-level* behavior — not a motion simulator
 (that is grblHAL's job). It consumes commands and produces the exact line shapes
 the M3 parser understands, so a ``RealController`` (M5) can talk to it through an
 in-memory transport (:mod:`tools.grblhal_sim.loopback`) with no serial hardware.
 
-Configurable per CLAUDE.md §6/§7 M7: welcome banner, settings dictionary,
+Configurable/: welcome banner, settings dictionary,
 alarm-on-reset (homing required), and per-line error injection. Ack timing and
 status-report cadence are applied by the transport, which owns the clock.
 """
@@ -42,7 +42,7 @@ DEFAULT_SETTINGS: dict[int, str] = {
 }
 
 _DEFAULT_WELCOME = "GrblHAL 1.1f ['$' or '$HELP' for help]"
-_ERROR_LOCKED = 9  # grbl error:9 — G-code locked out during alarm/jog (§5.5)
+_ERROR_LOCKED = 9  # grbl error:9 — G-code locked out during alarm/jog
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,7 +54,7 @@ class SimulatorConfig:
     homing_required: bool = False  # if True, a reset lands in Alarm, not Idle
     error_lines: Mapping[str, int] = field(default_factory=dict)  # line -> error code
     persist_writes: bool = True  # if False, setting writes are acked but ignored
-    # (fault injection for the settings-verify path, §8.7)
+    # (fault injection for the settings-verify path,)
 
 
 class GrblHalSimulator:
@@ -133,7 +133,7 @@ class GrblHalSimulator:
             self._pos = _apply_jog(self._pos, line)
             self._state = MachineState.JOG
             return ["ok"]
-        # Generic G/M-code: locked out while alarmed (§5.5), otherwise accepted.
+        # Generic G/M-code: locked out while alarmed, otherwise accepted.
         if self._alarm is not None:
             return [f"error:{_ERROR_LOCKED}"]
         return ["ok"]

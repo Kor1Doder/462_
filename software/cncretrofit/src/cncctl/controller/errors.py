@@ -1,9 +1,9 @@
 """Typed exception hierarchy for the controller layer.
 
-Per CLAUDE.md §3.5, machine-state surprises are never swallowed: lost
+Per the design, machine-state surprises are never swallowed: lost
 connections, parse errors, alarm transitions, and unexpected responses are
 typed exceptions surfaced immediately. Every layer boundary re-raises lower
-errors as one of these types (CLAUDE.md §9: "no bare except").
+errors as one of these types.
 
 The full tree is defined here even though some leaves are first *raised* in
 later milestones — having the hierarchy stable early lets every layer catch
@@ -34,7 +34,7 @@ class NotConnectedError(TransportError):
 class ConnectionLostError(TransportError):
     """The transport dropped unexpectedly.
 
-    Per CLAUDE.md §8.6, a mid-program disconnect must not auto-resume; the
+    Per the design, a mid-program disconnect must not auto-resume; the
     operator reconnects and re-acknowledges state. First raised in M2/M5.
     """
 
@@ -45,20 +45,20 @@ class ProtocolError(CncError):
 
 
 class ParseError(ProtocolError):
-    """An inbound line did not match any known shape (CLAUDE.md §5.3). First raised in M3."""
+    """An inbound line did not match any known shape. First raised in M3."""
 
 
 class UnexpectedResponseError(ProtocolError):
     """A well-formed line arrived that does not fit the current exchange.
 
-    Status reports are asynchronous w.r.t. acks (CLAUDE.md §5.3), so this is
+    Status reports are asynchronous w.r.t. acks, so this is
     reserved for genuinely contradictory responses, not mere reordering.
     """
 
 
 # --- machine state ----------------------------------------------------------
 class MachineStateError(CncError):
-    """Base for errors about the machine's state machine (CLAUDE.md §5, §8)."""
+    """Base for errors about the machine's state machine."""
 
 
 class IllegalTransitionError(MachineStateError):
@@ -66,7 +66,7 @@ class IllegalTransitionError(MachineStateError):
 
     The legal transition graph lives in ``state.py``. Raised when an observed
     or requested transition is not in that graph — surfaced, never assumed
-    away (CLAUDE.md §5: "Never assume the machine is Idle").
+    away.
     """
 
     def __init__(self, frm: object, to: object) -> None:
@@ -78,13 +78,13 @@ class IllegalTransitionError(MachineStateError):
 class MachineNotReadyError(MachineStateError):
     """A motion command was issued while the machine could not safely move.
 
-    SAFETY INVARIANT (CLAUDE.md §8.1): no motion command is sent in ``Alarm``
+    SAFETY INVARIANT: no motion command is sent in ``Alarm``
     or ``Door`` state. Rejected here before it can reach the streamer.
     """
 
 
 class AlarmError(MachineStateError):
-    """The machine is in (or entered) an alarm condition (CLAUDE.md §5.5).
+    """The machine is in (or entered) an alarm condition.
 
     Alarm is sticky: motion stays locked out until ``$X`` (unlock) or ``$H``
     (home). Carries the grbl alarm code when known.
@@ -98,13 +98,13 @@ class AlarmError(MachineStateError):
 
 # --- settings ---------------------------------------------------------------
 class SettingsError(CncError):
-    """Base for settings read/write problems (CLAUDE.md §5.6)."""
+    """Base for settings read/write problems."""
 
 
 class SettingsMismatchError(SettingsError):
     """A written setting did not read back identically.
 
-    SAFETY INVARIANT (CLAUDE.md §8.7): calibration writes are verified by
+    SAFETY INVARIANT: calibration writes are verified by
     re-reading ``$$``; a mismatch is an error, not a warning. First raised in
     M8/M11.
     """
@@ -116,7 +116,7 @@ class StreamingError(CncError):
 
 
 class SoftLimitError(StreamingError):
-    """A program would move outside the machine's soft limits (§8.2).
+    """A program would move outside the machine's soft limits.
 
     Raised by the file sender's host-side pre-flight (``viz.analyze``) before
     any line is sent. First raised in M9.
@@ -126,7 +126,7 @@ class SoftLimitError(StreamingError):
 class BufferOverflowError(StreamingError):
     """The streamer was about to exceed the device RX buffer.
 
-    SAFETY INVARIANT (CLAUDE.md §8.4): the streamer never sends a line that
+    SAFETY INVARIANT: the streamer never sends a line that
     would exceed the known RX buffer size — no "probably fine" margins. This
     should be impossible by construction; if raised, the streamer has a bug.
     First raised in M4.
@@ -135,7 +135,7 @@ class BufferOverflowError(StreamingError):
 
 # --- commands ---------------------------------------------------------------
 class CommandRejectedError(CncError):
-    """The device answered a command line with ``error:N`` (§5.3).
+    """The device answered a command line with ``error:N``.
 
     Carries the grbl error ``code``. First raised in M5 when an individual
     command (home, jog, settings write, ...) is rejected.
@@ -151,7 +151,7 @@ class UnsupportedGcodeError(CncError):
     """The toolpath simulator met a construct it does not model (M10).
 
     Raised rather than silently producing a wrong bounding box, which would
-    defeat the soft-limit pre-flight (§8.2). E.g. arcs in the G18/G19 planes or
+    defeat the soft-limit pre-flight. E.g. arcs in the G18/G19 planes or
     the R radius form, which are not yet supported.
     """
 

@@ -7,7 +7,7 @@ Console commands (handled locally, not sent verbatim):
     !       feed hold       ~  resume       reset  soft reset
     $$      show settings   help  show this text
 Anything else is sent to the machine as a G-code / $ line. Motion lines are
-soft-limit pre-flighted first and refused if they'd leave the envelope (§8.2).
+soft-limit pre-flighted first and refused if they'd leave the envelope.
 
 Try without hardware (the simulator acks lines; it is not a motion simulator,
 so MPos only moves on jogs):

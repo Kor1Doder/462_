@@ -1,6 +1,6 @@
 """State-machine tests: exhaustive legal/illegal transitions and reset rules.
 
-CLAUDE.md §6 Tier 1: "State machine: exhaustive transitions including illegal
+the design: "State machine: exhaustive transitions including illegal
 ones (must raise)."
 """
 
@@ -52,7 +52,7 @@ def test_alarm_is_always_reachable() -> None:
 
 
 def test_alarm_is_sticky_no_direct_motion() -> None:
-    # CLAUDE.md §5.5: Alarm clears only via $X (-> Idle) or $H (-> Home).
+    # the design: Alarm clears only via $X (-> Idle) or $H (-> Home).
     assert ALLOWED[MachineState.ALARM] == frozenset(
         {MachineState.IDLE, MachineState.HOME, MachineState.ALARM}
     )
@@ -61,7 +61,7 @@ def test_alarm_is_sticky_no_direct_motion() -> None:
 
 
 def test_motion_blocked_states_are_alarm_and_door() -> None:
-    # CLAUDE.md §8.1.
+    # the design
     assert set(MOTION_BLOCKED_STATES) == {MachineState.ALARM, MachineState.DOOR}
 
 
@@ -84,7 +84,7 @@ def test_reset_rejects_non_reset_targets() -> None:
 
 
 def test_reset_is_reachable_from_every_state() -> None:
-    # SAFETY (§8.3): soft reset is always available regardless of state.
+    # SAFETY: soft reset is always available regardless of state.
     for state in ALL_STATES:
         sm = StateMachine(state)
         sm.reset()

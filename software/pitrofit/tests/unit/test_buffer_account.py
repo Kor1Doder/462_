@@ -1,6 +1,6 @@
-"""BufferAccount tests: the §8.4 invariant under random reserve/ack sequences.
+"""BufferAccount tests: the invariant under random reserve/ack sequences.
 
-CLAUDE.md §6 Tier 1: "across 10k random (line-lengths, ack-timings) sequences,
+the design: "across 10k random (line-lengths, ack-timings) sequences,
 outstanding bytes never exceed buffer size." The accounting is pure, so this is
 a fast, exhaustive property test.
 """
@@ -40,7 +40,7 @@ def test_reserve_and_acknowledge_are_fifo() -> None:
     account.reserve("second", 7)
     assert account.bytes_outstanding == 13
     assert account.pending_count == 2
-    assert account.acknowledge() == "first"  # oldest acked first (§5.1)
+    assert account.acknowledge() == "first"  # oldest acked first
     assert account.bytes_outstanding == 7
     assert account.acknowledge() == "second"
     assert account.bytes_outstanding == 0
@@ -93,7 +93,7 @@ def test_outstanding_never_exceeds_buffer(buffer_size: int, ops: list[tuple[str,
             account.acknowledge()
             model.pop(0)
 
-        # SAFETY INVARIANT (§8.4): never over the buffer, ever.
+        # SAFETY INVARIANT: never over the buffer, ever.
         assert account.bytes_outstanding <= buffer_size
         assert account.bytes_outstanding == sum(model)
         assert account.free == buffer_size - account.bytes_outstanding

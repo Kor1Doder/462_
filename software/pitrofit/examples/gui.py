@@ -143,7 +143,7 @@ _LIVE_SETTINGS: tuple[tuple[int, str], ...] = (
 _SAFE_HOMING = {20: "0", 21: "0", 22: "1", 5: "1", 24: "50.0", 25: "300.0", 26: "250", 27: "2.0"}
 
 # "Run without limit switches" — the commissioning state when no limit/home
-# switches are wired yet (CLAUDE.md §2). $22=0 so the controller boots Idle
+# switches are wired yet. $22=0 so the controller boots Idle
 # instead of into a homing-required Alarm; $21=0 (no hard limits) and $20=0 (no
 # soft limits) so motion — including a G-code program — never trips an alarm on
 # floating/absent switch pins. This is exactly the cure for "it keeps entering
@@ -1724,7 +1724,7 @@ class MainWindow(QWidget):
     # ============================================================= soft homing
     def _abort_soft_home(self) -> None:
         """Ask a running soft-home pass to stop; the loop cancels the jog and
-        unwinds at the next guard check (§8.3 soft-stop is always available)."""
+        unwinds at the next guard check."""
         if self._soft_homing:
             self._soft_home_abort = True
             self.log("soft-home: abort requested")

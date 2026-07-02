@@ -92,7 +92,7 @@ Quit does **not** stop the machine — the hardwired e-stop is your real stop.
 ## Configure the machine
 
 Edit [`config/machine.toml`](../config/machine.toml) before cutting anything —
-it ships with **placeholder zeros** on purpose (see `CLAUDE.md §2`). Fill in the
+it ships with **placeholder zeros** on purpose. Fill in the
 calibrated steps/mm, rates, accelerations, and soft limits, and set the serial
 port. If you installed the udev rule, prefer the stable name:
 

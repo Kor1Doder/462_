@@ -1,4 +1,4 @@
-"""Load and validate ``config/machine.toml`` (CLAUDE.md §2, §7 M8).
+"""Load and validate ``config/machine.toml``.
 
 The file holds the machine's calibration and limits. This module decodes it
 into typed structs, derives the grbl settings map to push at boot, and checks
@@ -95,7 +95,7 @@ def save_config(config: Config, path: Path) -> None:
     """
     axes = config.axes
     lines = [
-        "# Machine calibration and limits. Written by cncctl. See CLAUDE.md §2.",
+        "# Machine calibration and limits. Written by cncctl. See the design",
         "",
         "[machine]",
         f"name = {_toml_str(config.machine.name)}",
@@ -140,8 +140,8 @@ def _toml_num(value: float) -> str:
 
 
 def default_port(config: Config) -> str:
-    """Return the default serial port for the current OS (CLAUDE.md §2)."""
-    # Platform-specific default. Explicit guard per the §1 hard rule.
+    """Return the default serial port for the current OS."""
+    # Platform-specific default. Explicit guard per the hard rule.
     # TODO: remove once port selection is fully driven by config/CLI.
     # The value is read into a local so mypy does not statically narrow
     # ``sys.platform`` and flag the other OS's branch as unreachable — both
@@ -153,7 +153,7 @@ def default_port(config: Config) -> str:
 
 
 def settings_from_config(config: Config) -> dict[int, str]:
-    """Derive the grbl ``$N=value`` map to push at boot (CLAUDE.md §2)."""
+    """Derive the grbl ``$N=value`` map to push at boot."""
     axes = config.axes
     kx, ky, kz = _STEPS_PER_MM
     rx, ry, rz = _MAX_RATE
@@ -179,7 +179,7 @@ def settings_from_config(config: Config) -> dict[int, str]:
 def require_commissioned(config: Config) -> None:
     """Reject an uncommissioned config before any value reaches the machine.
 
-    Placeholder zeros (the committed ``machine.toml`` ships all-zero, §2) are
+    Placeholder zeros (the committed ``machine.toml`` ships all-zero,) are
     physically meaningless and dangerous to push, so the bootstrap refuses them.
 
     Raises:

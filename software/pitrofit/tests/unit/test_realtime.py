@@ -1,4 +1,4 @@
-"""Realtime command byte tests (M3, §5.2)."""
+"""Realtime command byte tests (M3,)."""
 
 from __future__ import annotations
 

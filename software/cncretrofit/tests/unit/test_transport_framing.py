@@ -95,6 +95,6 @@ def test_encode_realtime_rejects_out_of_range(value: int) -> None:
 
 
 def test_line_terminator_is_a_single_byte() -> None:
-    # The M4 streamer's character counting depends on this (§5.1).
+    # The M4 streamer's character counting depends on this.
     assert LINE_TERMINATOR == b"\n"
     assert len(LINE_TERMINATOR) == 1

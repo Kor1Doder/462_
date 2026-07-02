@@ -1,6 +1,6 @@
 """Tier-2 integration: the full M5 session against the grblHAL simulator.
 
-CLAUDE.md §6 Tier 2 / §7 M5 done-criteria: "connect -> soft reset -> settings
+the design / done-criteria: "connect -> soft reset -> settings
 round-trip -> 1000-line program -> assert no buffer overflow, all acks received,
 final state Idle, continuous status reports." Runs in-memory on both OSes.
 """
@@ -44,7 +44,7 @@ async def test_full_session_through_simulator() -> None:
     # 5. assertions: every line sent in order; send_program returns only after
     #    the streamer drains (pending_count == 0), so all 1000 lines were acked.
     #    No buffer overflow — the streamer raises BufferOverflowError if it ever
-    #    would, so reaching here proves the §8.4 invariant held throughout.
+    #    would, so reaching here proves the invariant held throughout.
     assert len(progress) == 1000
     assert progress[-1].sent == 1000
     assert sim.received_lines[-1000:] == program  # all lines received, in order

@@ -1,7 +1,6 @@
 """M11 HIL smoke: steps-per-mm calibration end-to-end on the real machine.
 
-Fulfills the M11 done-criterion. Opt-in and hardware-gated (CLAUDE.md §6 Tier
-3). To stay safe it uses ``commanded == measured`` (an identity calibration),
+Fulfills the M11 done-criterion. Opt-in and hardware-gated. To stay safe it uses ``commanded == measured`` (an identity calibration),
 so it exercises the full read -> compute -> write -> verify flow while writing
 the axis' existing ``$100`` value back unchanged. Persistence across power
 cycles is the operator's manual check (re-read ``$$`` after a power cycle).

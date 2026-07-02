@@ -1,9 +1,9 @@
 """M8 HIL smoke: bootstrap a commissioned config against the real machine.
 
 Fulfills the M8 done-criterion "bootstrap runs against the real machine in HIL
-smoke". Opt-in and hardware-gated per CLAUDE.md §6 Tier 3:
+smoke". Opt-in and hardware-gated:
 
-* requires ``CNCCTL_HIL=1`` AND ``CNCCTL_PORT`` (no port is ever assumed, §11);
+* requires ``CNCCTL_HIL=1`` AND ``CNCCTL_PORT`` (no port is ever assumed,);
 * ``CNCCTL_CONFIG`` may point at a *commissioned* machine.toml (the committed
   one ships placeholder zeros, so the test skips unless a real config is given);
 * prints a 5-second "abort now" message before touching the machine.

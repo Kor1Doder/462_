@@ -30,7 +30,6 @@ htmlcov/
 .idea/
 *.swp
 *.swo
-.claude/settings.local.json
 
 # OS
 .DS_Store
@@ -38,7 +37,7 @@ Thumbs.db
 
 # External source checkouts — read-only references, large, not redistributed
 # Must be cloned manually before working on protocol/streamer/transport code.
-# See README.md and CLAUDE.md §11.
+# See README.md and the design notes
 /reference/
 
 # HIL captures and replay artifacts can be large or machine-specific

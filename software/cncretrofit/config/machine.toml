@@ -1,4 +1,4 @@
-# Machine calibration and limits. Written by cncctl. See CLAUDE.md §2.
+# Machine calibration and limits. Written by cncctl. See the design notes
 
 [machine]
 name = "EMCO mill (retrofit)"

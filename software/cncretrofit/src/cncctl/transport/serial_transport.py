@@ -1,13 +1,13 @@
-"""Real serial transport over USB-CDC using ``pyserial-asyncio`` (CLAUDE.md M2).
+"""Real serial transport over USB-CDC using ``pyserial-asyncio``.
 
 Wraps an asyncio ``StreamReader``/``StreamWriter`` pair from
-``serial_asyncio.open_serial_connection``. Provides the two write paths (§5.2)
+``serial_asyncio.open_serial_connection``. Provides the two write paths
 sharing a single write lock, frames inbound bytes via :class:`LineAssembler`,
 and opens with exponential backoff.
 
 Note on policy vs mechanism: the backoff here is the *mechanism* for retrying a
 flaky open. It does not auto-resume a program after a mid-stream disconnect —
-that policy decision belongs to the controller/facade, and CLAUDE.md §8.6
+that policy decision belongs to the controller/facade, and the design
 forbids auto-resume. ``read_lines`` simply ends on EOF; reconnection is the
 caller's explicit choice.
 
@@ -84,7 +84,7 @@ class SerialTransport:
         return self._open
 
     async def open(self, port: str) -> None:
-        """Open ``port`` with exponential backoff (§3.3, M2).
+        """Open ``port`` with exponential backoff.
 
         Raises:
             TransportError: every attempt failed.
@@ -131,11 +131,11 @@ class SerialTransport:
         _log.info("serial_closed", port=self._port)
 
     async def send_line(self, line: str) -> None:
-        """Send one line (§5.2 buffered path).
+        """Send one line.
 
         Throughput note (the streaming bottleneck): we deliberately do **not**
         ``await writer.drain()`` here. ``drain()`` blocks until the line has
-        physically left the host, and the character-counting streamer (§5.1)
+        physically left the host, and the character-counting streamer
         awaits this call before reserving and sending the *next* line — so a
         per-line drain serialises the pipeline to one round-trip per line and
         caps streaming at roughly one USB micro-frame per line (the symptom:
@@ -160,7 +160,7 @@ class SerialTransport:
             writer.write(data)
 
     async def send_realtime(self, byte: int) -> None:
-        """Send a single realtime byte immediately (§5.2).
+        """Send a single realtime byte immediately.
 
         Realtime commands (``?``, ``!``, ``~``, soft reset, jog cancel) are
         latency-critical, so this path *does* drain: it flushes the byte — and,
@@ -174,7 +174,7 @@ class SerialTransport:
             await writer.drain()
 
     async def read_lines(self) -> AsyncIterator[bytes]:
-        """Yield inbound lines until EOF (§5.3 feeds the parser).
+        """Yield inbound lines until EOF.
 
         Raises:
             NotConnectedError: the transport is not open.

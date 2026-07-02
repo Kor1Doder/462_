@@ -1,4 +1,4 @@
-"""Axis squaring helper (CLAUDE.md §4).
+"""Axis squaring helper.
 
 Squaring matters for gantry / dual-motor axes. The EMCO retrofit has one motor
 per axis, so this is not used operationally — it is provided for the standard

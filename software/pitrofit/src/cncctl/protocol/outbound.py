@@ -1,4 +1,4 @@
-"""Outbound command construction (CLAUDE.md §4 ``outbound.py``, §7 M3).
+"""Outbound command construction.
 
 Builds the *text* of grbl/grblHAL line commands with correct syntax — the part
 that actually needs care. Turning a command string into wire bytes (charset +
@@ -17,11 +17,11 @@ from collections.abc import Iterable
 from cncctl.controller.messages import Axis
 
 # System commands (no arguments).
-GET_SETTINGS = "$$"  # dump every $N=value (§5.6)
+GET_SETTINGS = "$$"  # dump every $N=value
 GET_BUILD_INFO = "$I"  # firmware version / options
 GET_PARSER_STATE = "$G"  # active modal state -> [GC:...]
 GET_NGC_PARAMETERS = "$#"  # work offsets / probe -> [G54:...] etc.
-UNLOCK = "$X"  # clear alarm lock (§5.5)
+UNLOCK = "$X"  # clear alarm lock
 HOME = "$H"  # homing cycle (all axes)
 CHECK_MODE_TOGGLE = "$C"  # toggle G-code check mode
 
@@ -50,7 +50,7 @@ def format_jog(axis: Axis, distance_mm: float, feed_mm_min: float) -> str:
 
 
 def format_setting(key: int, value: str) -> str:
-    """Build a setting write: ``$100=250.000`` (§5.6)."""
+    """Build a setting write: ``$100=250.000``."""
     return f"${key}={value}"
 
 

@@ -1,4 +1,4 @@
-"""Material-removal ("workpiece") simulation (CLAUDE.md §7 M10).
+"""Material-removal ("workpiece") simulation.
 
 The :mod:`~cncctl.viz.simulate` / :mod:`~cncctl.viz.analyze` pair tells you where
 the *tool* goes and whether it stays in bounds. This module answers the next

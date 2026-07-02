@@ -1,8 +1,8 @@
-"""Toolpath analysis and the soft-limit pre-flight (CLAUDE.md §7 M10, §8.2).
+"""Toolpath analysis and the soft-limit pre-flight.
 
 ``analyze`` reduces a :class:`~cncctl.viz.simulate.Trace` to a bounding box,
 travel/duration totals, and — critically — soft-limit violations. This is the
-check M9 runs before streaming a program: SAFETY INVARIANT §8.2 (soft limits
+check M9 runs before streaming a program: SAFETY INVARIANT (soft limits
 validated host-side). Pure Python, no heavy dependency.
 """
 
@@ -41,7 +41,7 @@ class AnalysisResult(msgspec.Struct, frozen=True):
 
     @property
     def in_bounds(self) -> bool:
-        """True iff the toolpath stays within the soft limits (§8.2)."""
+        """True iff the toolpath stays within the soft limits."""
         return not self.violations
 
     @property

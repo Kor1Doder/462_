@@ -1,4 +1,4 @@
-"""Structured logging helpers (CLAUDE.md §9).
+"""Structured logging helpers.
 
 structlog with JSON output; every logger is bound with a ``module`` field and
 ``event`` is supplied per call (the two required fields). Configuration is
@@ -15,7 +15,7 @@ from structlog.typing import FilteringBoundLogger, Processor
 
 
 def get_logger(module: str) -> FilteringBoundLogger:
-    """Return a logger bound with ``module=<module>`` (CLAUDE.md §9).
+    """Return a logger bound with ``module=<module>``.
 
     ``module`` is one of the required fields; pass ``event`` as the first
     positional argument of each log call, e.g. ``log.info("serial_open", port=p)``.
@@ -29,7 +29,7 @@ def configure_logging(*, level: int = logging.INFO, json: bool = True) -> None:
 
     Args:
         level: minimum level to emit.
-        json: emit JSON (production/CLAUDE.md §9) when True, or a colorized
+        json: emit JSON when True, or a colorized
             console renderer (local dev) when False.
     """
     renderer: Processor = (

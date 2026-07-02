@@ -1,7 +1,7 @@
 """M9 HIL smoke: send a (motion-free) program through to the real machine.
 
 Fulfills the M9 done-criterion "can send a real program on both OSes". Opt-in
-and hardware-gated per CLAUDE.md §6 Tier 3. The default program is intentionally
+and hardware-gated. The default program is intentionally
 **motion-free** (units/comment/M30) so the smoke exercises the streaming + ack
 path end-to-end without commanding the machine to move; point ``CNCCTL_PROGRAM``
 at a real file to send an actual toolpath.
@@ -48,7 +48,7 @@ async def test_send_program_to_real_machine(tmp_path: Path) -> None:
     await asyncio.sleep(_ABORT_SECONDS)
 
     # A generous envelope — the default program does not move, and a custom one
-    # is the operator's responsibility (CLAUDE.md §6: table clear, spindle off).
+    # is the operator's responsibility.
     profile = MachineProfile(
         soft_limits=SoftLimits(x=(-1000.0, 1000.0), y=(-1000.0, 1000.0), z=(-1000.0, 1000.0)),
         kinematics=Kinematics(max_rate_mm_min=1000.0),

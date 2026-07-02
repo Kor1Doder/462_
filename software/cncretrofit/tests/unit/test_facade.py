@@ -1,4 +1,4 @@
-"""Facade tests (M8): operator ops + §8 safety invariants, against FakeController."""
+"""Facade tests (M8): operator ops + safety invariants, against FakeController."""
 
 from __future__ import annotations
 
@@ -132,7 +132,7 @@ async def test_settings_passthrough() -> None:
     assert settings.get(100) == "250.000"
 
 
-# -- §8.1: motion gated at the facade ----------------------------------------
+# --: motion gated at the facade ----------------------------------------
 async def test_jog_blocked_in_alarm_before_reaching_controller() -> None:
     facade, controller = await _facade()
     controller.inject_alarm(1)
@@ -163,7 +163,7 @@ async def test_home_blocked_with_open_door() -> None:
         await facade.home()
 
 
-# -- §8.3: soft reset always available ---------------------------------------
+# --: soft reset always available ---------------------------------------
 async def test_reset_works_even_in_alarm() -> None:
     facade, controller = await _facade()
     controller.inject_alarm(1)
@@ -172,7 +172,7 @@ async def test_reset_works_even_in_alarm() -> None:
     assert "0x18" in controller.commands
 
 
-# -- bootstrap (§2, §8.7) ----------------------------------------------------
+# -- bootstrap ----------------------------------------------------
 async def test_bootstrap_pushes_and_verifies() -> None:
     controller = FakeController()
     facade = Facade(controller)
@@ -194,7 +194,7 @@ async def test_bootstrap_rejects_uncommissioned_before_connecting() -> None:
 async def test_bootstrap_detects_settings_mismatch() -> None:
     class DroppingController(FakeController):
         async def write_setting(self, key: int, value: str) -> None:
-            return  # ack but do not persist -> read-back will differ (§8.7)
+            return  # ack but do not persist -> read-back will differ
 
     controller = DroppingController()
     facade = Facade(controller)

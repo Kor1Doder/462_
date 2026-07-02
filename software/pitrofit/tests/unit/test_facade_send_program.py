@@ -1,6 +1,6 @@
 """Facade.send_program tests (M9): soft-limit pre-flight, streaming, cancel.
 
-Against FakeController, so the focus is the pre-flight gate (§8.2) and the
+Against FakeController, so the focus is the pre-flight gate and the
 cancel sequence — not real streaming timing.
 """
 
@@ -55,7 +55,7 @@ async def test_send_program_streams_an_in_bounds_program(tmp_path: Path) -> None
 
 
 async def test_send_program_refuses_out_of_bounds_and_sends_nothing(tmp_path: Path) -> None:
-    # SAFETY §8.2: pre-flight refuses before any line is sent.
+    # SAFETY: pre-flight refuses before any line is sent.
     facade, controller = await _facade(_profile(x_max=10.0))
     path = _write(tmp_path, "G90\nG1 X50 F600")
     with pytest.raises(SoftLimitError, match="X max"):

@@ -1,6 +1,6 @@
-"""Inbound parser tests: a corpus of every §5.3 shape plus property round-trips.
+"""Inbound parser tests: a corpus of every shape plus property round-trips.
 
-CLAUDE.md §6 Tier 1 / §7 M3: "Hypothesis round-trips of every well-formed line
+the design /: "Hypothesis round-trips of every well-formed line
 shape" and "parser handles every example in the grblHAL docs and the test
 corpus".
 """

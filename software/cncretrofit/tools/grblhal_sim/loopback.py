@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from cncctl.transport.base import AsyncTransport
 
 #: A per-line ack delay: either a constant or a callable drawing from a
-#: distribution (CLAUDE.md §6: "per-line ack delay").
+#: distribution.
 AckDelay = float | Callable[[], float]
 
 
@@ -67,7 +67,7 @@ class SimulatedTransport:
     async def open(self, port: str) -> None:
         self._sim.reset()
         self._open = True
-        self._emit(self._sim.welcome)  # device announces itself on connect (§5.4)
+        self._emit(self._sim.welcome)  # device announces itself on connect
         self._tasks.append(asyncio.create_task(self._run_device()))
         if self._status_interval is not None:
             self._tasks.append(asyncio.create_task(self._run_status()))

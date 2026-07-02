@@ -1,1 +1,1 @@
-"""Safety invariants and soft-limit checks (M8). See CLAUDE.md §8 — never violate."""
+"""Safety invariants and soft-limit checks (M8). See the design — never violate."""

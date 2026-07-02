@@ -1,6 +1,6 @@
 """Toolpath analysis tests (M10): bounding box, travel, duration, soft limits.
 
-The soft-limit checks are the §8.2 safety pre-flight M9 depends on.
+The soft-limit checks are the safety pre-flight M9 depends on.
 """
 
 from __future__ import annotations

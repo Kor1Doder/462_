@@ -1,4 +1,4 @@
-"""Geometric toolpath simulation (CLAUDE.md §7 M10).
+"""Geometric toolpath simulation.
 
 Walks a parsed :class:`~cncctl.gcode.parse.Program` into a typed :class:`Trace`
 of positions over time. Pure Python (``math`` only) — no motion-planner
@@ -10,7 +10,7 @@ Coverage and limits:
   distance modes.
 * ``G2``/``G3`` arcs in the **XY plane (G17)**, ``I``/``J`` center form, with
   linear Z interpolation (helical), sampled to a chord tolerance so the
-  bounding box captures the arc's bulge (§8.2).
+  bounding box captures the arc's bulge.
 * Arcs in the G18/G19 planes and the ``R`` radius form raise
   :class:`UnsupportedGcodeError` rather than silently mis-bounding the path.
 
@@ -159,7 +159,7 @@ def _arc_fractions(start_angle: float, sweep: float, segments: int) -> list[floa
 
     Forcing a sample exactly at each cardinal angle makes the bounding box exact
     rather than under-reporting an arc's bulge by up to the chord tolerance — the
-    soft-limit pre-flight (§8.2) must not under-report.
+    soft-limit pre-flight must not under-report.
     """
     fractions = {index / segments for index in range(1, segments + 1)}  # uniform; includes end
     for quarter in range(-8, 9):

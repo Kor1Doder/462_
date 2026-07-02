@@ -1,4 +1,4 @@
-# Pre-commit hooks enforce CLAUDE.md §9 (ruff + mypy strict) before every commit.
+# Pre-commit hooks enforce the design notes (ruff + mypy strict) before every commit.
 # Install once per clone:  uv run pre-commit install
 
 repos:

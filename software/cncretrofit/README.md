@@ -6,16 +6,16 @@ via ioSender; this codebase is a clean-room Python port of ioSender's
 algorithms (streamer, parser, protocol handling) plus an asyncio-native facade
 on top.
 
-**The source of truth for this project is [`CLAUDE.md`](CLAUDE.md).** Read it
+**The source of truth for this project is [`the project docs`].** Read it
 before doing anything. It defines the architecture, the protocol contract,
-the safety invariants (§8 — never violate), and the milestone-by-milestone
-build plan (§7).
+the safety invariants ( — never violate), and the milestone-by-milestone
+build plan ().
 
 ## Status
 
 **M0 — Bootstrap.** Repository scaffold and tooling only. No functional code
 yet; subpackages under `src/cncctl/` are placeholders that name their owning
-milestone. See `CLAUDE.md §7` for the roadmap.
+milestone. See `the project docs` for the roadmap.
 
 ## Quick start (development)
 
@@ -54,4 +54,4 @@ If you are starting fresh, clone the upstream repositories into those paths.
 ## License
 
 GPL-3.0-or-later. See [`LICENSE`](LICENSE). The license is inherited from
-the obligation to read ioSender's source (CLAUDE.md §1).
+the obligation to read ioSender's source.

@@ -1,19 +1,19 @@
-"""Operator-facing facade over the ``Controller`` protocol (CLAUDE.md §4, §7 M8).
+"""Operator-facing facade over the ``Controller`` protocol.
 
 The facade is the boundary the API/UI talk to. It uses *only* the
 :class:`~cncctl.controller.protocol.Controller` interface — it never reaches
-into transport/protocol/streamer — and it is where the §8 safety invariants are
+into transport/protocol/streamer — and it is where the safety invariants are
 enforced and unit-tested.
 
 Enforced here:
-* §8.1 — no jog/program in ``Alarm``/``Door``; homing (the recovery from
+* no jog/program in ``Alarm``/``Door``; homing (the recovery from
   ``Alarm``) is blocked only by an open door. Rejected before reaching the
   controller, with :class:`MachineNotReadyError`.
-* §8.3 — :meth:`reset` is always available.
-* §8.7 — :meth:`bootstrap` re-reads ``$$`` and diffs after pushing settings.
+* :meth:`reset` is always available.
+* :meth:`bootstrap` re-reads ``$$`` and diffs after pushing settings.
 
 The G-code *file sender* (``send_program``/``send_file``) lands in M9, where it
-gains the soft-limit pre-flight (§8.2) that makes streaming a program safe; it
+gains the soft-limit pre-flight that makes streaming a program safe; it
 is intentionally absent here so nothing can stream a program unchecked.
 """
 
@@ -56,8 +56,7 @@ class MachineProfile(msgspec.Struct, frozen=True):
         soft-limit envelope is ``[0, soft_limit_mm]`` per axis — CONVENTION:
         machine zero at the *minimum* corner (positive travel). A machine that
         homes to the maximum corner (negative machine coordinates) must supply
-        :class:`SoftLimits` directly instead (CLAUDE.md §11 — no guessing about
-        hardware specifics).
+        :class:`SoftLimits` directly instead.
         """
         axes = config.axes
         rate = min(axes.x.max_rate_mm_min, axes.y.max_rate_mm_min, axes.z.max_rate_mm_min)
@@ -89,9 +88,9 @@ class Facade:
     async def disconnect(self) -> None:
         await self._controller.disconnect()
 
-    # -- motion (§8.1) -------------------------------------------------------
+    # -- motion -------------------------------------------------------
     async def home(self, axes: Iterable[Axis] | None = None) -> None:
-        """Run a homing cycle. Blocked only by an open door (§8.1) — homing is
+        """Run a homing cycle. Blocked only by an open door — homing is
         the recovery path out of ``Alarm`` and so is permitted there.
 
         Raises:
@@ -105,7 +104,7 @@ class Facade:
         """Jog an axis.
 
         Raises:
-            MachineNotReadyError: the machine is in ``Alarm`` or ``Door`` (§8.1).
+            MachineNotReadyError: the machine is in ``Alarm`` or ``Door``.
         """
         self._reject_if_motion_blocked("jog")
         await self._controller.jog(axis, distance_mm, feed_mm_min)
@@ -123,7 +122,7 @@ class Facade:
         await self._controller.resume()
 
     async def reset(self) -> None:
-        """Soft reset — always available (§8.3)."""
+        """Soft reset — always available."""
         await self._controller.soft_reset()
 
     # -- settings ------------------------------------------------------------
@@ -131,13 +130,13 @@ class Facade:
         return await self._controller.read_settings()
 
     async def write_setting(self, key: int, value: str) -> None:
-        """Write one setting; the controller verifies it by re-reading ``$$`` (§8.7)."""
+        """Write one setting; the controller verifies it by re-reading ``$$``."""
         await self._controller.write_setting(key, value)
 
     def status_stream(self) -> AsyncIterator[Status]:
         return self._controller.status_stream()
 
-    # -- program sending (§7 M9) ---------------------------------------------
+    # -- program sending ---------------------------------------------
     async def analyze_file(self, path: Path) -> AnalysisResult:
         """Run the host-side pre-flight on a G-code file without sending it.
 
@@ -151,7 +150,7 @@ class Facade:
         return await asyncio.to_thread(self._preflight, text)
 
     async def send_program(self, path: Path) -> AsyncIterator[ProgramProgress]:
-        """Stream a G-code file after a soft-limit pre-flight (§7 M9, §8.2).
+        """Stream a G-code file after a soft-limit pre-flight.
 
         Reads and analyzes the file off the event loop; refuses to send if the
         toolpath would leave the soft limits. ``total`` on each yielded progress
@@ -159,8 +158,8 @@ class Facade:
 
         Raises:
             ConfigError: no machine profile is configured.
-            SoftLimitError: the toolpath exceeds the soft limits (§8.2).
-            MachineNotReadyError / NotConnectedError: from the controller (§8.1).
+            SoftLimitError: the toolpath exceeds the soft limits.
+            MachineNotReadyError / NotConnectedError: from the controller.
         """
         if self._profile is None:
             raise ConfigError("no machine profile configured; cannot pre-flight a program")
@@ -191,7 +190,7 @@ class Facade:
         await self._controller.run_line(line)
 
     async def unlock(self) -> None:
-        """Clear an alarm (``$X``) so motion is allowed again (§5.5).
+        """Clear an alarm (``$X``) so motion is allowed again.
 
         grblHAL ignores motion in ``Alarm`` until unlocked or homed; this is the
         unlock half. The operator must be sure the machine is safe to move first.
@@ -221,7 +220,7 @@ class Facade:
         await self._controller.run_line(f"G10 L20 P1 {words}")
 
     async def cancel(self) -> None:
-        """Cancel a running program: feed hold, then soft reset (§7 M9, §8.3)."""
+        """Cancel a running program: feed hold, then soft reset."""
         await self._controller.feed_hold()
         await self._controller.soft_reset()
 
@@ -231,17 +230,17 @@ class Facade:
         trace = simulate(program, self._profile.kinematics)
         return analyze(trace, self._profile.soft_limits)
 
-    # -- bootstrap (§2, §8.7) ------------------------------------------------
+    # -- bootstrap ------------------------------------------------
     async def bootstrap(self, config: Config, port: str) -> None:
         """Boot the machine: validate config, connect, push settings, verify.
 
-        Refuses an uncommissioned config (placeholder zeros, §2) before touching
+        Refuses an uncommissioned config (placeholder zeros,) before touching
         the machine, then pushes every derived ``$N=value`` and finally re-reads
-        ``$$`` and diffs (§8.7).
+        ``$$`` and diffs.
 
         Raises:
             ConfigError: the config is not commissioned.
-            SettingsMismatchError: a pushed setting did not read back (§8.7).
+            SettingsMismatchError: a pushed setting did not read back.
         """
         require_commissioned(config)
         desired = settings_from_config(config)

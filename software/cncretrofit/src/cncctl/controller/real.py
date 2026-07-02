@@ -1,8 +1,8 @@
-"""The real Controller: composes transport + parser + streamer (CLAUDE.md §7 M5).
+"""The real Controller: composes transport + parser + streamer.
 
 ``RealController`` is the only place that knows about the lower layers
 (``transport`` / ``protocol`` / ``streamer``); everything above it sees only the
-:class:`~cncctl.controller.protocol.Controller` interface (§4).
+:class:`~cncctl.controller.protocol.Controller` interface.
 
 Concurrency model:
 
@@ -11,12 +11,12 @@ Concurrency model:
   to the oldest pending command otherwise. Status reports update the state model
   and fan out to ``status_stream`` subscribers.
 * a **status-poll task** sends ``?`` at a fixed rate (default 10 Hz). Three
-  consecutive missed reports are treated as a disconnect (§8.5); it does not
-  auto-resume (§8.6).
+  consecutive missed reports are treated as a disconnect; it does not
+  auto-resume.
 
 Safety: motion commands are gated on the observed state before anything is sent
-(§8.1); soft reset is realtime and always available (§8.3); settings writes are
-verified by re-reading ``$$`` (§5.6, §8.7).
+; soft reset is realtime and always available; settings writes are
+verified by re-reading ``$$``.
 """
 
 from __future__ import annotations
@@ -98,7 +98,7 @@ class RealController:
         self._settings = Settings(values={})
         self._status_subscribers: list[asyncio.Queue[Status | None]] = []
         self._last_status: Status | None = None
-        self._wco: Position | None = None  # cached work-coordinate offset (§5.3)
+        self._wco: Position | None = None  # cached work-coordinate offset
         self._missed = 0
         self._homing = False  # suspends the missed-status watchdog during a homing cycle
         self._welcome_event = asyncio.Event()
@@ -144,7 +144,7 @@ class RealController:
         await self._teardown("client disconnect")
 
     async def soft_reset(self) -> None:
-        # SAFETY §8.3: always available while connected, from any state.
+        # SAFETY: always available while connected, from any state.
         self._require_connected()
         self._welcome_event.clear()
         await self._transport.send_realtime(Realtime.SOFT_RESET)
@@ -173,7 +173,7 @@ class RealController:
 
     async def jog(self, axis: Axis, distance_mm: float, feed_mm_min: float) -> None:
         self._require_connected()
-        self._require_idle("jog")  # covers the Alarm/Door lockout (§8.1)
+        self._require_idle("jog")  # covers the Alarm/Door lockout
         await self._send_command(outbound.format_jog(axis, distance_mm, feed_mm_min))
 
     async def cancel_jog(self) -> None:
@@ -189,7 +189,7 @@ class RealController:
         await self._transport.send_realtime(Realtime.CYCLE_START)
 
     async def run_line(self, line: str) -> None:
-        """Send one raw G-code/system line (MDI) and await its ok (§7 M11/console)."""
+        """Send one raw G-code/system line (MDI) and await its ok."""
         self._require_connected()
         await self._send_command(line)
 
@@ -203,7 +203,7 @@ class RealController:
     async def write_setting(self, key: int, value: str) -> None:
         self._require_connected()
         await self._send_command(outbound.format_setting(key, value))
-        # SAFETY §8.7: verify by re-reading $$; a mismatch is an error.
+        # SAFETY: verify by re-reading $$; a mismatch is an error.
         settings = await self.read_settings()
         actual = settings.get(key)
         if actual != value:
@@ -279,13 +279,13 @@ class RealController:
         try:
             self._sm.apply(status.state)
         except IllegalTransitionError as exc:
-            # Surface the surprise (§5) but keep the last known state.
+            # Surface the surprise but keep the last known state.
             self._log.warning("unexpected_transition", error=str(exc))
         for queue in self._status_subscribers:
             queue.put_nowait(status)
 
     def _enrich(self, status: Status) -> Status:
-        """Fill the missing of MPos/WPos from the cached WCO (§5.3).
+        """Fill the missing of MPos/WPos from the cached WCO.
 
         grblHAL reports either machine *or* work position (per ``$10``) plus the
         work-coordinate offset only periodically. We cache the latest WCO and use
@@ -335,7 +335,7 @@ class RealController:
             future.set_result(None)
 
     def _on_welcome(self, welcome: Welcome) -> None:
-        # §5.4: a welcome is a hard reset — drop the ack queue and the streamer's
+        #: a welcome is a hard reset — drop the ack queue and the streamer's
         # outstanding-byte accounting, and reset state.
         self._sm.reset(MachineState.IDLE)
         self._missed = 0

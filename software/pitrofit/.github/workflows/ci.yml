@@ -8,7 +8,7 @@ on:
 permissions:
   contents: read
 
-# CLAUDE.md §6: the deployment target is Linux (Raspberry Pi OS, aarch64), so CI
+# the design notes: the deployment target is Linux (Raspberry Pi OS, aarch64), so CI
 # runs on Linux only. GitHub's hosted runners are x86-64; the dependency wheels
 # we rely on (numpy, matplotlib, Qt) also ship aarch64, so the Pi install path is
 # validated on the device itself, not in CI.

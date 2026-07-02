@@ -1,4 +1,4 @@
-"""Load and validate ``config/machine.toml`` (CLAUDE.md §2, §7 M8).
+"""Load and validate ``config/machine.toml``.
 
 The file holds the machine's calibration and limits. This module decodes it
 into typed structs, derives the grbl settings map to push at boot, and checks
@@ -94,7 +94,7 @@ def save_config(config: Config, path: Path) -> None:
     """
     axes = config.axes
     lines = [
-        "# Machine calibration and limits. Written by cncctl. See CLAUDE.md §2.",
+        "# Machine calibration and limits. Written by cncctl. See the design",
         "",
         "[machine]",
         f"name = {_toml_str(config.machine.name)}",
@@ -138,7 +138,7 @@ def _toml_num(value: float) -> str:
 
 
 def default_port(config: Config) -> str:
-    """Return the configured default serial port (CLAUDE.md §2).
+    """Return the configured default serial port.
 
     The Raspberry Pi enumerates the grblHAL Pico as ``/dev/ttyACM0`` by default;
     override per machine in ``config/machine.toml`` or at the call site.
@@ -147,7 +147,7 @@ def default_port(config: Config) -> str:
 
 
 def settings_from_config(config: Config) -> dict[int, str]:
-    """Derive the grbl ``$N=value`` map to push at boot (CLAUDE.md §2)."""
+    """Derive the grbl ``$N=value`` map to push at boot."""
     axes = config.axes
     kx, ky, kz = _STEPS_PER_MM
     rx, ry, rz = _MAX_RATE
@@ -173,7 +173,7 @@ def settings_from_config(config: Config) -> dict[int, str]:
 def require_commissioned(config: Config) -> None:
     """Reject an uncommissioned config before any value reaches the machine.
 
-    Placeholder zeros (the committed ``machine.toml`` ships all-zero, §2) are
+    Placeholder zeros (the committed ``machine.toml`` ships all-zero,) are
     physically meaningless and dangerous to push, so the bootstrap refuses them.
 
     Raises:

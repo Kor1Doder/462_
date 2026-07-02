@@ -1,12 +1,12 @@
-"""Steps-per-mm calibration (CLAUDE.md §7 M11).
+"""Steps-per-mm calibration.
 
 You command a known distance, measure the actual travel, and correct the axis'
-``$100``/``$101``/``$102`` steps/mm. The flow is two-step (CLAUDE.md §7 M11):
+``$100``/``$101``/``$102`` steps/mm. The flow is two-step:
 propose the new value, require confirmation, then write and verify via ``$$``
-(§8.7 — the controller's ``write_setting`` does the re-read/diff).
+.
 
 I/O is injected (``confirm`` / ``emit`` callables) so the flow is testable
-without a terminal and the modules stay print-free (§9).
+without a terminal and the modules stay print-free.
 """
 
 from __future__ import annotations
@@ -82,7 +82,7 @@ async def propose_steps(
 
 
 async def apply_steps(facade: Facade, proposal: StepsProposal) -> None:
-    """Write the proposed setting (verified via ``$$`` by the controller, §8.7)."""
+    """Write the proposed setting (verified via ``$$`` by the controller,)."""
     await facade.write_setting(proposal.setting_key, proposal.value)
 
 

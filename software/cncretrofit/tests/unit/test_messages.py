@@ -1,6 +1,6 @@
 """Message tests: msgspec round-trips (Hypothesis) and immutability.
 
-CLAUDE.md §6 Tier 1: "Inbound parser: Hypothesis round-trips of every
+the design: "Inbound parser: Hypothesis round-trips of every
 well-formed line shape." The parser is M3; here we verify the *message types*
 themselves serialize losslessly and are immutable.
 """

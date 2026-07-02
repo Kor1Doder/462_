@@ -1,6 +1,6 @@
 """Placeholder so the HIL test directory exists. Real tests land alongside M8+.
 
-Per CLAUDE.md §6: HIL tests are gated by ``CNCCTL_HIL=1`` and the first
+Per the design: HIL tests are gated by ``CNCCTL_HIL=1`` and the first
 action of every real test must print a 5-second 'abort now' message before
 touching the machine.
 """

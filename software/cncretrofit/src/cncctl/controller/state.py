@@ -9,11 +9,11 @@ report token straight onto a member.
 
 This module owns only the *coarse* state. The numeric substate (e.g. the ``1``
 in ``Hold:1``, or alarm code ``11``) travels on the ``Status`` message, not in
-the transition graph — keeping the graph tractable. See CLAUDE.md §5.
+the transition graph — keeping the graph tractable. See the design
 
 The transition graph is our model of grbl's observable state changes. An
 observed or requested edge that is not in the graph raises
-``IllegalTransitionError`` rather than being silently accepted — CLAUDE.md §5:
+``IllegalTransitionError`` rather than being silently accepted — the design:
 "unexpected responses are typed exceptions ... Never assume the machine is
 Idle." The benign-but-unenumerated edges are kept permissive; the
 safety-critical edges (notably the stickiness of ``Alarm``) are kept strict.
@@ -44,19 +44,19 @@ class MachineState(enum.Enum):
 
 #: States in which a motion command must never be issued.
 #:
-#: SAFETY INVARIANT (CLAUDE.md §8.1): no motion command is sent in ``Alarm`` or
+#: SAFETY INVARIANT: no motion command is sent in ``Alarm`` or
 #: ``Door`` state. The facade and the controllers both gate on this set before
 #: anything reaches the streamer.
 MOTION_BLOCKED_STATES: frozenset[MachineState] = frozenset({MachineState.ALARM, MachineState.DOOR})
 
-#: States a soft reset / welcome may legitimately land in (CLAUDE.md §5.4).
+#: States a soft reset / welcome may legitimately land in.
 #: grbl comes up ``Idle``, or ``Alarm`` when homing is required first.
 _RESET_TARGETS: frozenset[MachineState] = frozenset({MachineState.IDLE, MachineState.ALARM})
 
 # Per-source explicit outgoing edges, *excluding* the universal edges added
 # below (self-transition and -> Alarm). Each edge reflects real grbl behavior;
 # the safety-critical entry is ALARM, which can only clear to IDLE (via $X /
-# soft reset) or HOME (via $H) — never directly to a motion state (§5.5, §8.1).
+# soft reset) or HOME (via $H) — never directly to a motion state.
 _OUTGOING: dict[MachineState, frozenset[MachineState]] = {
     # Before the first status we know nothing; allow settling into any state.
     MachineState.UNKNOWN: frozenset(MachineState),
@@ -152,7 +152,7 @@ class StateMachine:
     def reset(self, to: MachineState = MachineState.IDLE) -> None:
         """Force the model to a post-reset state, bypassing the graph.
 
-        Models a soft reset (``0x18``) or a ``Welcome`` line (CLAUDE.md §5.4):
+        Models a soft reset (``0x18``) or a ``Welcome`` line:
         a hard state reset reachable from *any* state. grbl lands in ``Idle``,
         or ``Alarm`` when homing is required first.
 

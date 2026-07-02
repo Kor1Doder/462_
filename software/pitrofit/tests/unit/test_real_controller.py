@@ -53,7 +53,7 @@ def test_real_controller_satisfies_protocol() -> None:
 
 def test_wco_derivation_fills_missing_position() -> None:
     # The controller caches WCO and derives whichever of MPos/WPos a report omits
-    # (CLAUDE.md §5.3). _on_status is the sync entry point the read loop calls.
+    #. _on_status is the sync entry point the read loop calls.
     controller = RealController(SimulatedTransport())
 
     controller._on_status(
@@ -95,7 +95,7 @@ async def test_write_setting_verifies_round_trip() -> None:
 
 
 async def test_write_setting_mismatch_raises() -> None:
-    # SAFETY §8.7: the device acks the write but does not persist it.
+    # SAFETY: the device acks the write but does not persist it.
     controller, _ = await _connect(persist_writes=False)
     with pytest.raises(SettingsMismatchError):
         await controller.write_setting(100, "260.000")
@@ -117,7 +117,7 @@ async def test_rejected_command_raises() -> None:
 
 
 async def test_jog_rejected_when_alarmed() -> None:
-    # SAFETY §8.1: motion gated on the observed state.
+    # SAFETY: motion gated on the observed state.
     controller, _ = await _connect(homing_required=True)
     await _wait_until(lambda: controller.state is MachineState.ALARM)
     with pytest.raises(MachineNotReadyError):
@@ -142,7 +142,7 @@ async def test_realtime_commands_do_not_raise() -> None:
 
 
 async def test_send_program_rejected_when_alarmed() -> None:
-    # SAFETY §8.1: a program cannot start unless Idle.
+    # SAFETY: a program cannot start unless Idle.
     controller, _ = await _connect(homing_required=True)
     await _wait_until(lambda: controller.state is MachineState.ALARM)
     with pytest.raises(MachineNotReadyError):
@@ -183,7 +183,7 @@ async def test_status_stream_yields_then_ends_on_disconnect() -> None:
 
 
 async def test_missed_status_reports_disconnect() -> None:
-    # SAFETY §8.5: N consecutive missed status reports => disconnect.
+    # SAFETY: N consecutive missed status reports => disconnect.
     transport = SimulatedTransport(drop_status=True)
     controller = RealController(transport, status_rate_hz=200, max_missed_status=3)
     await controller.connect("sim")

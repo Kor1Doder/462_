@@ -1,6 +1,6 @@
 """An in-memory, deterministic, scriptable :class:`Controller` for tests.
 
-CLAUDE.md §3.2: the ``Controller`` protocol exists so a ``FakeController`` can
+the design: the ``Controller`` protocol exists so a ``FakeController`` can
 substitute the real one without a serial port or a machine. This fake models
 grbl's *observable* behavior at the command level — it does not parse G-code or
 plan motion (that is the real machine's / the simulator's job).
@@ -16,7 +16,7 @@ Design choices that keep tests deterministic:
   the safety behavior.
 * Every issued command is appended to :attr:`commands` for assertions.
 
-SAFETY (CLAUDE.md §8.1): ``jog`` and ``send_program`` refuse to run unless the
+SAFETY: ``jog`` and ``send_program`` refuse to run unless the
 machine is ``Idle``, raising :class:`MachineNotReadyError`. That covers the
 ``Alarm``/``Door`` lockout and the "machine already busy" case in one check.
 ``home`` (``$H``) is the alarm-recovery path, so it is permitted from ``Alarm``
@@ -105,7 +105,7 @@ class FakeController:
 
     # -- Controller protocol -------------------------------------------------
     async def connect(self, port: str) -> None:
-        """Mark connected and reset the model to ``reset_state`` (§5.4)."""
+        """Mark connected and reset the model to ``reset_state``."""
         self.commands.append(f"connect:{port}")
         self._connected = True
         self._sm.reset(self._reset_state)
@@ -119,7 +119,7 @@ class FakeController:
         self._sm = StateMachine(MachineState.UNKNOWN)
 
     async def soft_reset(self) -> None:
-        """Soft reset (``0x18``) — always available while connected (§8.3).
+        """Soft reset (``0x18``) — always available while connected.
 
         Works from *any* machine state, including ``Alarm``/``Run``/``Hold``;
         only a missing connection prevents it.
@@ -136,7 +136,7 @@ class FakeController:
         Raises:
             NotConnectedError: no open connection.
             MachineNotReadyError: the machine is not in ``Idle``/``Alarm`` (this
-                rejects ``Door`` and busy states, satisfying §8.1).
+                rejects ``Door`` and busy states, satisfying).
         """
         self._require_connected()
         if self._sm.current not in (MachineState.IDLE, MachineState.ALARM):
@@ -154,7 +154,7 @@ class FakeController:
         Raises:
             NotConnectedError: no open connection.
             MachineNotReadyError: the machine is not ``Idle`` — covers the
-                ``Alarm``/``Door`` lockout (§8.1) and the busy case.
+                ``Alarm``/``Door`` lockout and the busy case.
         """
         self._require_connected()
         self._require_idle("jog")
@@ -190,33 +190,33 @@ class FakeController:
         self.commands.append(line)
 
     async def read_settings(self) -> Settings:
-        """Return a snapshot copy of the cached ``$$`` map (§5.6)."""
+        """Return a snapshot copy of the cached ``$$`` map."""
         self._require_connected()
         self.commands.append("$$")
         return Settings(values=dict(self._settings_map))
 
     async def write_setting(self, key: int, value: str) -> None:
-        """Write ``$key=value`` to the in-memory map (§5.6).
+        """Write ``$key=value`` to the in-memory map.
 
         The fake's read-back always matches, so it never raises
         ``SettingsMismatchError``; the verify-and-diff step lives in the facade
-        (§8.7) and is exercised there.
+ and is exercised there.
         """
         self._require_connected()
         self.commands.append(f"${key}={value}")
         self._settings_map[key] = value
 
     async def send_program(self, lines: AsyncIterable[str]) -> AsyncIterator[ProgramProgress]:
-        """Stream a program, yielding one ``ProgramProgress`` per line (§7 M9).
+        """Stream a program, yielding one ``ProgramProgress`` per line.
 
-        Refuses unless ``Idle`` (covers the ``Alarm``/``Door`` lockout, §8.1).
+        Refuses unless ``Idle`` (covers the ``Alarm``/``Door`` lockout,).
         The line source is materialized so ``total`` is known up front. The
         model is ``Run`` while yielding and returns to ``Idle`` when the source
         is exhausted.
 
         Raises:
             NotConnectedError: no open connection.
-            MachineNotReadyError: the machine is not ``Idle`` (§8.1).
+            MachineNotReadyError: the machine is not ``Idle``.
         """
         self._require_connected()
         self._require_idle("send_program")
@@ -239,7 +239,7 @@ class FakeController:
         self._sm.apply(MachineState.IDLE)
 
     async def status_stream(self) -> AsyncIterator[Status]:
-        """Yield the current status snapshot indefinitely (§8.5).
+        """Yield the current status snapshot indefinitely.
 
         Raises:
             NotConnectedError: no open connection (raised on first iteration).

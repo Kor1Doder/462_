@@ -1,4 +1,4 @@
-"""Modal-group accounting for the G-code wrapper (CLAUDE.md §4, §7 M6).
+"""Modal-group accounting for the G-code wrapper.
 
 G-code is *modal*: a motion mode (``G0``/``G1``/...), distance mode
 (``G90``/``G91``), units (``G20``/``G21``), plane, feed rate, and so on persist

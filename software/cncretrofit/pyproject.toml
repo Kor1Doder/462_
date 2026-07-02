@@ -19,19 +19,19 @@ classifiers = [
 # Runtime dependencies are added inside the milestone that requires them:
 #   M10 -> pyGCodeDecode, matplotlib
 dependencies = [
-    # M1: typed messages across boundaries (CLAUDE.md §3.4). msgspec frozen
+    # M1: typed messages across boundaries. msgspec frozen
     # Structs model immutable protocol messages and keep the 10 Hz status
     # path cheap; ships aarch64 wheels for the Raspberry Pi target.
     "msgspec>=0.18",
-    # M2: async serial transport over USB-CDC (CLAUDE.md §3.3, §11 pre-approved).
+    # M2: async serial transport over USB-CDC.
     "pyserial-asyncio>=0.6",
-    # M2: structured JSON logging (CLAUDE.md §9).
+    # M2: structured JSON logging.
     "structlog>=24.1",
     # M6 note: gcodeparser (the originally-named library) was evaluated and
     # rejected — its line regex requires every line to start with G/M/T, so it
     # silently drops bare-coordinate modal moves and (...) comments. Losing
-    # moves would defeat M10's soft-limit pre-flight (§8.2), so cncctl.gcode
-    # uses an in-house tokenizer instead. See CLAUDE.md §7 M6.
+    # moves would defeat M10's soft-limit pre-flight, so cncctl.gcode
+    # uses an in-house tokenizer instead. See the design notes.
     # M10: 2D toolpath rendering. matplotlib is far lighter than pyGCodeDecode's
     # vtk/pyvista tree and ships aarch64 wheels for the Pi. The simulate/analyze
     # core is pure Python; only render.py imports matplotlib. See viz/README.md.
@@ -93,7 +93,7 @@ select = [
     "SIM",          # simplifications
     "PL",           # pylint subset
     "RUF",          # ruff-specific
-    "ASYNC",        # async pitfalls (CLAUDE.md §3.3)
+    "ASYNC",        # async pitfalls
     "TID",          # tidy imports
 ]
 ignore = [

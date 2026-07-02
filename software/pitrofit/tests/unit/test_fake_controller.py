@@ -1,7 +1,7 @@
 """FakeController tests — exercises every Controller method against the fake.
 
-CLAUDE.md §7 M1 done-criteria: "Tier 1 tests exercise every method of the
-protocol against the fake." Safety rejections per §8.1 are asserted here too.
+the design done-criteria: "Tier 1 tests exercise every method of the
+protocol against the fake." Safety rejections are asserted here too.
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ async def test_disconnect_returns_to_unknown() -> None:
     assert fc.state is MachineState.UNKNOWN
 
 
-# -- soft reset (always available, §8.3) -------------------------------------
+# -- soft reset (always available,) -------------------------------------
 async def test_soft_reset_works_from_run() -> None:
     fc = await _connected()
     fc.script_state(MachineState.RUN)
@@ -129,7 +129,7 @@ async def test_jog_updates_mpos() -> None:
 
 
 async def test_jog_rejected_in_alarm() -> None:
-    # SAFETY §8.1.
+    # SAFETY
     fc = await _connected()
     fc.inject_alarm(1)
     with pytest.raises(MachineNotReadyError):
@@ -137,7 +137,7 @@ async def test_jog_rejected_in_alarm() -> None:
 
 
 async def test_jog_rejected_in_door() -> None:
-    # SAFETY §8.1.
+    # SAFETY
     fc = await _connected()
     fc.open_door()
     with pytest.raises(MachineNotReadyError):
@@ -219,7 +219,7 @@ async def test_send_program_yields_progress_per_line() -> None:
 
 
 async def test_send_program_rejected_in_alarm() -> None:
-    # SAFETY §8.1: refuses before sending anything.
+    # SAFETY: refuses before sending anything.
     fc = await _connected()
     fc.inject_alarm(1)
     with pytest.raises(MachineNotReadyError):

@@ -1,10 +1,10 @@
 """Async transport abstraction, inbound line framing, and outbound encoding.
 
-The transport is the lowest layer (CLAUDE.md §3.1, §4): a byte/line pipe to
+The transport is the lowest layer: a byte/line pipe to
 grblHAL over USB-CDC. Everything above it (parser, streamer, controller) is
 built on this protocol. Consumers above the controller never import this module.
 
-Two write paths per CLAUDE.md §5.2:
+Two write paths:
 
 * ``send_line``     — append the terminator, buffered write.
 * ``send_realtime`` — a single byte, written immediately, bypassing the line queue.
@@ -25,9 +25,9 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Protocol, runtime_checkable
 
-#: Outgoing line terminator. CLAUDE.md §5.1 accounts for a single LF per line
+#: Outgoing line terminator. the design accounts for a single LF per line
 #: ("len(line) + 1"). ioSender sends CR (``SerialStream.cs:289``); grblHAL
-#: accepts either and counts one byte, so we follow §5.1 and use LF. The M4
+#: accepts either and counts one byte, so we follow and use LF. The M4
 #: streamer's character counting depends on this being a single byte.
 LINE_TERMINATOR: bytes = b"\n"
 
@@ -46,7 +46,7 @@ def encode_line(line: str) -> bytes:
 
 
 def encode_realtime(byte: int) -> bytes:
-    """Encode a single realtime command byte (§5.2).
+    """Encode a single realtime command byte.
 
     Raises:
         ValueError: if ``byte`` is not in ``range(256)``.
@@ -118,7 +118,7 @@ class AsyncTransport(Protocol):
         ...
 
     async def send_line(self, line: str) -> None:
-        """Send one line, terminator appended (§5.2 buffered path).
+        """Send one line, terminator appended.
 
         Raises:
             NotConnectedError: the transport is not open.
@@ -126,7 +126,7 @@ class AsyncTransport(Protocol):
         ...
 
     async def send_realtime(self, byte: int) -> None:
-        """Send a single realtime byte immediately (§5.2), bypassing the queue.
+        """Send a single realtime byte immediately, bypassing the queue.
 
         Raises:
             NotConnectedError: the transport is not open.

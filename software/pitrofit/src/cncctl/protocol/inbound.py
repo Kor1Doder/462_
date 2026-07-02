@@ -1,7 +1,7 @@
-"""Inbound line parser: bytes/str -> typed message (CLAUDE.md §5.3, §7 M3).
+"""Inbound line parser: bytes/str -> typed message.
 
 A line-shape dispatcher. Dispatch is by the *shape* of the line, never by what
-was last sent (status reports arrive asynchronously w.r.t. acks, §5.3). The
+was last sent (status reports arrive asynchronously w.r.t. acks,). The
 parser is stateless: it fills whatever a single line carries. Cross-report
 state (e.g. deriving ``MPos`` from a cached ``WCO``) is the controller's job.
 
@@ -10,7 +10,7 @@ Field handling for the ``<...>`` status report is ported from ioSender's
 Core/GrblViewModel.cs:866``).
 
 Robustness: malformed lines (no recognizable shape) raise ``ParseError`` so the
-surprise surfaces (§3.5). Recognized-but-unknown *bracket* messages — grblHAL
+surprise surfaces. Recognized-but-unknown *bracket* messages — grblHAL
 has an open-ended set of them — fall back to ``Feedback`` rather than crashing
 the read loop.
 """

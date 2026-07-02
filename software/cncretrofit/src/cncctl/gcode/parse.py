@@ -1,6 +1,6 @@
-"""In-house G-code tokenizer producing a typed :class:`Program` (CLAUDE.md §7 M6).
+"""In-house G-code tokenizer producing a typed :class:`Program`.
 
-This replaces ``gcodeparser`` (see M6 in CLAUDE.md): a line-oriented tokenizer
+This replaces ``gcodeparser``: a line-oriented tokenizer
 that correctly handles **modal moves** (bare-coordinate lines such as ``X30 Y40``
 that continue the previously commanded motion) and both comment styles
 (``( … )`` and ``;``). It is deliberately a thin, swappable layer — consumers
@@ -9,8 +9,7 @@ depend on the typed blocks here, not on any particular parser.
 Each non-blank source line becomes exactly one block:
 
 * :class:`Motion`    — the line moves an axis (or arc offset). Its ``mode``,
-  ``feed``, units, and distance mode come from the modal context (§7 M6
-  "modal carryover applied"), so a bare ``X30`` is a complete motion block.
+  ``feed``, units, and distance mode come from the modal context, so a bare ``X30`` is a complete motion block.
 * :class:`ToolChange` — the line contains ``M6`` (with the selected ``T`` tool).
 * :class:`Setting`   — any other state/config line (units, distance mode, plane,
   WCS, feed/spindle set, spindle/coolant M-codes, program control).

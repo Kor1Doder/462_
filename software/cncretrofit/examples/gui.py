@@ -1121,7 +1121,7 @@ class MainWindow(QWidget):
     def _poll_status(self) -> None:
         if self.controller is None:
             return
-        # The controller drops itself on unplug / missed status (§8.5); notice it
+        # The controller drops itself on unplug / missed status; notice it
         # here and let the auto-connect loop recover — no dialog, no stale screen.
         if self.connected and not self.controller.is_connected:
             self._on_connection_lost()

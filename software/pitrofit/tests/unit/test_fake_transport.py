@@ -1,6 +1,6 @@
 """FakeTransport behavior, AsyncTransport conformance, and backoff schedule (M2).
 
-CLAUDE.md §7 M2 done-criteria: "fake-transport tests cover the abstraction."
+the design done-criteria: "fake-transport tests cover the abstraction."
 """
 
 from __future__ import annotations

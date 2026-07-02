@@ -1,7 +1,7 @@
 """Typed messages exchanged across controller boundaries.
 
-CLAUDE.md §3.4 forbids dict-of-strings between modules. Every inbound line
-shape in §5.3 has a corresponding immutable type here, and the high-level
+the design forbids dict-of-strings between modules. Every inbound line
+shape has a corresponding immutable type here, and the high-level
 ``ProgramProgress`` / ``Settings`` types ride on top. These are ``msgspec``
 frozen Structs: cheap to build on the hot 10 Hz status path, immutable, and
 directly (de)serializable for the future API/UI layer.
@@ -21,7 +21,7 @@ from cncctl.controller.state import MachineState
 
 
 class Axis(enum.Enum):
-    """A linear machine axis. The retrofit is 3-axis (CLAUDE.md §2).
+    """A linear machine axis. The retrofit is 3-axis.
 
     Values match the axis letters used in G-code and status reports. Rotary
     axes (A/B/C) are intentionally out of scope and not reserved here.
@@ -115,9 +115,9 @@ class InputSignals(msgspec.Struct, frozen=True):
         )
 
 
-# --- low-level line messages (§5.3) -----------------------------------------
+# --- low-level line messages -----------------------------------------
 class Ok(msgspec.Struct, frozen=True):
-    """``ok`` — acknowledges the oldest unacknowledged line (§5.1)."""
+    """``ok`` — acknowledges the oldest unacknowledged line."""
 
 
 class Error(msgspec.Struct, frozen=True):
@@ -128,7 +128,7 @@ class Error(msgspec.Struct, frozen=True):
 
 
 class Alarm(msgspec.Struct, frozen=True):
-    """``ALARM:N`` — the device entered an alarm condition (§5.5).
+    """``ALARM:N`` — the device entered an alarm condition.
 
     This is the *message*; :class:`cncctl.controller.errors.AlarmError` is the
     exception a layer raises in response.
@@ -139,7 +139,7 @@ class Alarm(msgspec.Struct, frozen=True):
 
 
 class Status(msgspec.Struct, frozen=True):
-    """``<State|...>`` — an asynchronous status report (§5.3).
+    """``<State|...>`` — an asynchronous status report.
 
     The device sends machine position (``MPos``) or work position (``WPos``),
     not both; the other is derived via ``wco`` (work coordinate offset, which is
@@ -179,7 +179,7 @@ class Feedback(msgspec.Struct, frozen=True):
 
 
 class ModalState(msgspec.Struct, frozen=True):
-    """``[GC:...]`` — the active modal G/M words (§5.3, §5.4).
+    """``[GC:...]`` — the active modal G/M words.
 
     Kept as the raw ordered words for M1; modal-group accounting lands in
     ``cncctl.gcode.modal`` if/when needed.
@@ -211,7 +211,7 @@ class BuildInfo(msgspec.Struct, frozen=True):
 
 
 class SettingLine(msgspec.Struct, frozen=True):
-    """``$N=value`` — a single setting line from ``$$`` (§5.6)."""
+    """``$N=value`` — a single setting line from ``$$``."""
 
     key: int
     value: str
@@ -220,7 +220,7 @@ class SettingLine(msgspec.Struct, frozen=True):
 class Welcome(msgspec.Struct, frozen=True):
     """``GrblHAL X.YY ...`` — a welcome banner.
 
-    Reception is a hard state reset (CLAUDE.md §5.4): drop the ack queue, clear
+    Reception is a hard state reset: drop the ack queue, clear
     modal state, re-poll settings, emit a state-changed event.
     """
 
@@ -230,10 +230,10 @@ class Welcome(msgspec.Struct, frozen=True):
 
 # --- high-level aggregate messages ------------------------------------------
 class Settings(msgspec.Struct, frozen=True):
-    """The parsed ``$$`` settings map (§5.6).
+    """The parsed ``$$`` settings map.
 
     Cached after every connect and after every successful write; a re-read diff
-    that does not match is an error (§8.7).
+    that does not match is an error.
     """
 
     values: dict[int, str]
@@ -244,10 +244,10 @@ class Settings(msgspec.Struct, frozen=True):
 
 
 class ProgramProgress(msgspec.Struct, frozen=True):
-    """Progress of a running program, yielded by ``send_program`` (§7 M9).
+    """Progress of a running program, yielded by ``send_program``.
 
     ``line`` is the 1-based index of the most recently *sent* line; ``sent`` and
-    ``acknowledged`` are running byte/line counts the streamer tracks (§5.1).
+    ``acknowledged`` are running byte/line counts the streamer tracks.
     ``total`` is ``None`` when streaming an unbounded source; the file sender
     (M9) fills it from the program's line count.
     """

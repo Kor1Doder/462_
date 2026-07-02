@@ -1,11 +1,11 @@
 # EMCO CNC mill — machine calibration and limits.
 #
 # Loaded by ``cncctl.config_io`` (M8). On controller boot the facade pushes
-# these values to grblHAL and verifies them via ``$$`` per CLAUDE.md §2.
+# these values to grblHAL and verifies them via ``$$``
 #
 # WARNING: every numeric value in this file is a PLACEHOLDER. Do not guess.
 # Fill in during commissioning by reading DIP switches, measuring travel,
-# and running the calibration flows in M11. See CLAUDE.md §11:
+# and running the calibration flows in M11. See the design notes:
 #   "Ask before assuming hardware specifics. ... No guessing."
 
 [machine]
@@ -17,7 +17,7 @@ name = "EMCO mill (retrofit)"
 # more than one ACM device, pin a stable name via the udev rule in deploy/.
 default_port         = "/dev/ttyACM0"
 baudrate             = 115200           # USB-CDC ignores baud; kept for clarity
-# §5.1: VERIFY against ``$I`` / the grblHAL build configuration before going live.
+#: VERIFY against ``$I`` / the grblHAL build configuration before going live.
 rx_buffer_bytes      = 128
 
 # Per-axis: 57BHH100 NEMA23 + CWD 556 driver. Microstepping is set in hardware

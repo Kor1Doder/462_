@@ -1,9 +1,9 @@
 """M2 HIL smoke: open the real port and read/log the grblHAL welcome line.
 
 Fulfills the M2 done-criterion "opens the real port, receives the welcome line,
-logs it". Opt-in and hardware-gated per CLAUDE.md §6 Tier 3:
+logs it". Opt-in and hardware-gated:
 
-* requires ``CNCCTL_HIL=1`` AND ``CNCCTL_PORT`` (no port is ever assumed, §11);
+* requires ``CNCCTL_HIL=1`` AND ``CNCCTL_PORT`` (no port is ever assumed,);
 * prints a 5-second "abort now" message before touching the machine.
 
 Run, e.g.:  ``CNCCTL_HIL=1 CNCCTL_PORT=/dev/ttyACM0 uv run pytest tests/hil``
@@ -31,7 +31,7 @@ async def test_serial_welcome_line() -> None:
     if not port:
         pytest.skip("Set CNCCTL_PORT to the grblHAL device (e.g. COM3 or /dev/ttyACM0).")
 
-    # §6 Tier 3: give the operator a chance to abort before any I/O.
+    #: give the operator a chance to abort before any I/O.
     print(f"\n*** HIL: opening {port} in {_ABORT_SECONDS}s — Ctrl-C to abort. ***")
     await asyncio.sleep(_ABORT_SECONDS)
 

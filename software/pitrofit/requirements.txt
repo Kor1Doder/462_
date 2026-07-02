@@ -16,9 +16,9 @@
 # use the pinned versions in uv.lock instead (`uv sync`).
 
 # --- headless core (always required) ---------------------------------------
-msgspec>=0.18           # typed protocol messages; frozen Structs (CLAUDE.md §3.4)
-pyserial-asyncio>=0.6   # async USB-CDC transport to the grblHAL Pico (§3.3)
-structlog>=24.1         # structured JSON logging (§9)
+msgspec>=0.18           # typed protocol messages; frozen Structs
+pyserial-asyncio>=0.6   # async USB-CDC transport to the grblHAL Pico
+structlog>=24.1         # structured JSON logging
 matplotlib>=3.8         # 2D toolpath rendering + headless PNG export (M10)
 numpy>=1.26             # heightmap material-removal engine in viz/workpiece.py (M10)
 

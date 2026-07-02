@@ -1,11 +1,11 @@
-"""Single-byte realtime command constants and helpers (CLAUDE.md §5.2).
+"""Single-byte realtime command constants and helpers.
 
 grblHAL processes these bytes immediately, bypassing the line buffer, so they
 work regardless of how full the RX buffer is — which is exactly why soft reset
-is always available (§8.3). Values are ported from ioSender's ``GrblConstants``
+is always available. Values are ported from ioSender's ``GrblConstants``
 (``reference/ioSender/CNC Core/CNC Core/Grbl.cs:65``).
 
-§5.2 lists the legacy ASCII forms for status/cycle-start/feed-hold (``?``/``~``/
+ lists the legacy ASCII forms for status/cycle-start/feed-hold (``?``/``~``/
 ``!``); grblHAL also accepts binary equivalents (0x80-0x82). We send the ASCII
 forms (universally accepted, human-readable in captures) and the binary forms
 for everything that has no ASCII equivalent.
@@ -57,7 +57,7 @@ REALTIME_BYTES: frozenset[int] = frozenset(member.value for member in Realtime)
 
 
 def is_realtime(byte: int) -> bool:
-    """Return whether ``byte`` is a recognized realtime command (§5.2)."""
+    """Return whether ``byte`` is a recognized realtime command."""
     return byte in REALTIME_BYTES
 
 

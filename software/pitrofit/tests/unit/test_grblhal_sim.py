@@ -55,7 +55,7 @@ def test_homing_required_resets_to_alarm_and_locks_motion() -> None:
     sim = GrblHalSimulator(SimulatorConfig(homing_required=True))
     sim.process_realtime(Realtime.SOFT_RESET)
     assert sim.state is MachineState.ALARM
-    assert sim.process_line("G0 X1") == ["error:9"]  # locked out (§5.5)
+    assert sim.process_line("G0 X1") == ["error:9"]  # locked out
     assert sim.process_line("$X")[-1] == "ok"
     assert sim.state is MachineState.IDLE
     assert sim.process_line("G0 X1") == ["ok"]
