@@ -4,23 +4,42 @@ This directory contains a self-contained, reproducible pipeline that compiles
 **grblHAL** firmware for a **generic Raspberry Pi Pico** board into a flashable
 `*.uf2` file — a local replacement for the grblHAL web builder for our target.
 
-Everything is driven by one script: [`build-grblhal.ps1`](build-grblhal.ps1).
+The pipeline is provided for both platforms with identical logic and options:
 
-```powershell
+- **Linux** (dev PC or Raspberry Pi): [`build-grblhal.sh`](build-grblhal.sh) — requires `curl git cmake ninja-build tar xz-utils`.
+- **Windows** (PowerShell): [`build-grblhal.ps1`](build-grblhal.ps1).
+
+### Linux (bash)
+
+```bash
 # 1. First run: download toolchain + SDK + tools, fetch source, build baseline
-.\build-grblhal.ps1 -SetupTools -FetchSource
+./build-grblhal.sh --setup-tools --fetch-source
 
 # 2. Subsequent builds (offline). Baseline generic Pico:
-.\build-grblhal.ps1 -Clean
+./build-grblhal.sh --clean
 
 # 3. With modules + 4 axes:
-.\build-grblhal.ps1 -Clean -Axes 4 -Modules eeprom,eeprom_fram,fans,rgb,modbus
+./build-grblhal.sh --clean --axes 4 --modules eeprom,eeprom_fram,fans,rgb,modbus
 
 # 4. See every selectable module:
+./build-grblhal.sh --list-modules
+```
+
+### Windows (PowerShell)
+
+```powershell
+.\build-grblhal.ps1 -SetupTools -FetchSource
+.\build-grblhal.ps1 -Clean
+.\build-grblhal.ps1 -Clean -Axes 4 -Modules eeprom,eeprom_fram,fans,rgb,modbus
 .\build-grblhal.ps1 -ListModules
 ```
 
-Output lands in `firmware\grblHAL_<board>_<axes>axis[_<modules>].uf2`.
+The two scripts take the same options (PowerShell `-PascalCase` ⇄ bash
+`--kebab-case`): `--board`, `--axes`, `--modules`, `--spindles`, `--output`,
+`--jobs`, `--homing`, `--homing-order`, `--limit-switches`, `--require-homing`,
+`--no-estop`, `--no-control-inputs`, `--invert-control`.
+
+Output lands in `firmware/grblHAL_<board>_<axes>axis[_<modules>].uf2`.
 Flash it: hold **BOOTSEL**, plug the Pico in, copy the `.uf2` onto the `RPI-RP2`
 USB drive that appears.
 
