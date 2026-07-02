@@ -1,80 +1,67 @@
-# cncctl — EMCO CNC mill retrofit (custom controller)
+# pitrofit — CNC operator application
 
-Headless Python core library for talking to [grblHAL](https://github.com/grblHAL)
-running on an RP2040 Pico over USB-CDC. The hardware path is already proven
-via ioSender; this codebase is a clean-room Python port of ioSender's
-algorithms (streamer, parser, protocol handling) plus an asyncio-native facade
-on top.
+The full control application for the retrofitted machines: the `cncctl` core
+(see [`../cncretrofit`](../cncretrofit/README.md) for the library architecture)
+plus a touch-friendly **PySide6 GUI** and a Raspberry Pi kiosk deployment.
 
-**The source of truth for this project is [`the project docs`].** Read it
-before doing anything. It defines the architecture, the protocol contract,
-the safety invariants ( — never violate), and the milestone-by-milestone
-build plan ().
+## Features
 
-## Status
+- **Machine control** — auto-discovering USB connection with graceful reconnect, jog, homing, G54 work-zero, feed-hold / resume / soft-reset, a live status dashboard, and a *Switch Doctor* for diagnosing limit switches.
+- **G-code sender** — host-side soft-limit pre-flight, streaming with progress, and hold / resume / cancel.
+- **3D workpiece simulator** — GPU-accelerated (pyqtgraph / OpenGL) material-removal preview with line-by-line playback and mirror / fit-to-stock / engrave-depth controls.
+- **2.5D CAD/CAM** (`examples/cad_cam.py`) — draw shapes, set stock + origin, emit grblHAL G-code.
+- **PCB isolation** (`examples/pcb.py`) — draw traces, pads and a board outline, emit single-sided isolation G-code.
+- **Camera monitoring** (`examples/camera.py`) and an experimental click-to-drive **visual aligner** (`examples/visual_align.py`).
+- **Touch numpad** (`examples/touch_input.py`) for the keyboard-less Pi panel.
 
-**M0 — Bootstrap.** Repository scaffold and tooling only. No functional code
-yet; subpackages under `src/cncctl/` are placeholders that name their owning
-milestone. See `the project docs` for the roadmap.
+## Run it
 
-## Quick start (development)
-
-Requires [uv](https://docs.astral.sh/uv/). uv pins Python 3.12 automatically
-per `pyproject.toml`.
+**Quickest (Raspberry Pi or dev PC) — no `uv` needed:**
 
 ```bash
-uv sync                                # create .venv, install dev deps
-uv run pytest                          # full test suite (unit + skipped placeholders)
-uv run pytest tests/unit               # Tier-1 only (fast)
-uv run ruff check
-uv run ruff format --check
-uv run mypy --strict src/cncctl
+./run-gui.sh                 # windowed
+./run-gui.sh --fullscreen    # kiosk / touch panel
 ```
 
-Pre-commit hooks (recommended once per clone):
+The launcher builds a local `.venv` on first run, then just launches the GUI.
+Tick **Use simulator** in the top bar to run with no hardware; with a Pico
+plugged in, it auto-discovers the serial port and connects.
+
+**With uv (development):**
 
 ```bash
-uv run pre-commit install
+uv sync --extra gui
+uv run python examples/gui.py
 ```
 
 ## Deploy on a Raspberry Pi 5
 
-The deployment target is a Raspberry Pi 5 running Raspberry Pi OS (Trixie,
-64-bit, Desktop), wired to the grblHAL Pico over USB and launching the operator
-GUI fullscreen on boot. See [`deploy/README.md`](deploy/README.md) for the full
-guide; the short version:
+Target: a Raspberry Pi 5 (or 4) running Raspberry Pi OS *Trixie* (64-bit),
+wired to the grblHAL Pico over USB and launching the GUI fullscreen on boot.
+Full guide in [`deploy/README.md`](deploy/README.md); the short version:
 
 ```bash
-git clone <this-repo-url> ~/cncctl
-cd ~/cncctl
-sudo deploy/install.sh        # deps + venv + udev + labwc autostart + autologin
+sudo deploy/install.sh        # deps + venv + udev rules + labwc autostart + autologin
 sudo reboot
 ```
 
-If you prefer a plain `pip` environment instead of `uv` (Python 3.12+ required):
+## Tests
 
 ```bash
-python3.12 -m venv .venv && . .venv/bin/activate
-pip install -r requirements.txt          # third-party runtime + GUI deps
-pip install -e . --no-deps               # the cncctl package itself
-python examples/gui.py --config config/machine.toml
+uv sync
+uv run pytest tests/unit
+uv run ruff check && uv run mypy --strict src/cncctl
 ```
 
-## Reference checkouts
+## Architecture
 
-Two external source trees are read-only references — they are **not imported
-at runtime** and are intentionally `.gitignore`d to keep the repo small.
-They must be present locally before working on streamer / parser / protocol
-code:
-
-- `reference/ioSender/` — canonical algorithm reference for everything in
-  `src/cncctl/{protocol,streamer,transport}/`. Read it before implementing.
-- `reference/grblHAL/` — firmware source, especially `RP2040/boards/generic_map.h`
-  for our pin map.
-
-If you are starting fresh, clone the upstream repositories into those paths.
+The control core is `cncctl`, layered facade → controller protocol →
+streamer / parser → USB transport. See
+[`../cncretrofit/README.md`](../cncretrofit/README.md#architecture) for the full
+description plus grblHAL protocol and safety notes;
+[`src/cncctl/viz/README.md`](src/cncctl/viz/README.md) covers the
+simulation / visualization engine.
 
 ## License
 
-GPL-3.0-or-later. See [`LICENSE`](LICENSE). The license is inherited from
-the obligation to read ioSender's source.
+GPL-3.0-or-later — see [`LICENSE`](LICENSE).
