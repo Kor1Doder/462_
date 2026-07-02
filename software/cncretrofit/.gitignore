@@ -42,3 +42,6 @@ Thumbs.db
 
 # HIL captures and replay artifacts can be large or machine-specific
 /tools/replay/captures/
+
+# Runtime artifacts written by the GUI (not source)
+cnc_backups/
