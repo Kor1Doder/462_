@@ -51,7 +51,10 @@ dependencies = [
 # of the carved heightmap; matplotlib's mplot3d can't do interactive 3D). Both
 # are pure-Python and far lighter than the vtk tree rejected in M10 — and they
 # live ONLY in this GUI extra, so the headless Pi/core library never pulls them.
-gui = ["pyside6>=6.6", "pyqtgraph>=0.13", "PyOpenGL>=3.1"]
+# opencv-python-headless: USB-webcam capture for the Camera monitoring tab
+# (ships aarch64 wheels; -headless avoids bundling a second Qt next to PySide6).
+# The Pi CSI camera uses apt's python3-picamera2 instead, imported only if present.
+gui = ["pyside6>=6.6", "pyqtgraph>=0.13", "PyOpenGL>=3.1", "opencv-python-headless>=4.8"]
 
 [dependency-groups]
 dev = [

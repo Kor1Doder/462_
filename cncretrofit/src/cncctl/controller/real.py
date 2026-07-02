@@ -312,7 +312,14 @@ class RealController:
 
     async def _on_ack(self, message: Ok | Error) -> None:
         if self._streaming:
-            await self._streamer.acknowledge()
+            try:
+                await self._streamer.acknowledge()
+            except StreamingError:
+                # A stale ack for a line sent before a mid-program reset, arriving
+                # after the welcome cleared the streamer's accounting. Harmless —
+                # ignore it rather than letting it kill the reader loop.
+                self._log.warning("stale_ack_after_reset")
+                return
             if isinstance(message, Error):
                 self._log.warning("error_during_program", code=message.code)
             return
@@ -332,6 +339,11 @@ class RealController:
         # outstanding-byte accounting, and reset state.
         self._sm.reset(MachineState.IDLE)
         self._missed = 0
+        # A welcome means the device reset — any program in flight is aborted. Drop
+        # the streaming flag so post-reset commands (e.g. $X to clear the alarm a
+        # cancel leaves behind) are accepted instead of rejected with
+        # "cannot send a command while a program is streaming".
+        self._streaming = False
         self._streamer.reset()
         self._fail_pending(ConnectionLostError("device reset (welcome)"))
         self._welcome_event.set()

@@ -147,6 +147,12 @@ class WorkpieceWidget(QWidget):
         self._marker_pos = (0.0, 0.0, 0.0)
         self._gcode_lines = self._gcode.splitlines()
 
+        # When the main GUI hits "Send", it pushes the program here and asks the
+        # view to auto-run the cut animation (play_program). The carve mesh is
+        # built off-thread, so we remember the request and start playing the
+        # moment it is ready.
+        self._autoplay_pending = False
+
         self._build_ui()
         self._debounce = QTimer(self)
         self._debounce.setSingleShot(True)
@@ -394,6 +400,11 @@ class WorkpieceWidget(QWidget):
         self._render()
         self._update_playback_readout()
 
+        # A "Send" asked us to auto-run the cut; the mesh is ready now, so go.
+        if self._autoplay_pending:
+            self._autoplay_pending = False
+            self._autostart_play()
+
     def _choose_file(self) -> None:
         name, _ = QFileDialog.getOpenFileName(
             self, "Open G-code", "", "G-code (*.nc *.gcode *.ngc *.tap *.txt);;All files (*)"
@@ -401,13 +412,20 @@ class WorkpieceWidget(QWidget):
         if not name:
             return
         try:
-            self._gcode = Path(name).read_text(encoding="utf-8")
+            text = Path(name).read_text(encoding="utf-8")
         except OSError as exc:
             self.status.setText(f"read error: {exc}")
             return
-        self._source = name
+        self.load_gcode(text, name)
+
+    def load_gcode(self, text: str, source: str) -> None:
+        """Load a G-code program (from a file chooser, or the live sender) and
+        rebuild the carve. Public so the main GUI can push the program it is about
+        to stream into this view."""
+        self._gcode = text
+        self._source = source
         self._gcode_lines = self._gcode.splitlines()
-        self.file_label.setText(name)
+        self.file_label.setText(source)
         self._view_framed = False  # reframe the camera for the new part
         # Loaded files live at arbitrary coordinates; fit the stock so they land
         # on the block. (setChecked emits toggled -> _on_fit_toggled -> reschedule.)
@@ -531,6 +549,41 @@ class WorkpieceWidget(QWidget):
         self.slider.blockSignals(True)
         self.slider.setValue(self._anim_seg)
         self.slider.blockSignals(False)
+
+    # -- auto-run on Send (driven by the main GUI) ---------------------------
+    def play_program(self, text: str, source: str) -> None:
+        """Load ``text`` and start animating the cut automatically.
+
+        Called when the operator hits "Send" in the main GUI: the simulation
+        should just start running. The carve mesh is built off the UI thread, so
+        we set a pending flag and :meth:`_on_carved` kicks off playback the moment
+        it is ready (a second or two for a big file). Everything afterwards is the
+        ordinary playback animation, so Play/Pause/Step/Seek keep working.
+        """
+        self._pause()
+        self._autoplay_pending = True
+        # load_gcode always (re)builds the carve off-thread; _on_carved starts the
+        # animation when it lands. Going through that one path avoids a race where
+        # an immediate start is then reset by the rebuild finishing.
+        self.load_gcode(text, source)
+
+    def _autostart_play(self) -> None:
+        """Begin the cut animation from the start (programmatic Play)."""
+        if self._last is None:
+            return
+        # Start at 1x so the simulation runs in real machining time — it tracks
+        # the actual cut rather than racing ahead. The operator can still speed it
+        # up with the Speed control afterwards.
+        self.speed.blockSignals(True)
+        self.speed.setValue(1.0)
+        self.speed.blockSignals(False)
+        self._start_animation()
+        self._playing = True
+        self.play_btn.setText("Pause")
+        self._anim_timer.start()
+        self._render()
+        self._update_playback_readout()
+        self._update_slider()
 
     @staticmethod
     def _fmt_time(seconds: float) -> str:

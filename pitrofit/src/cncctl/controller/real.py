@@ -65,6 +65,10 @@ _DEFAULT_STATUS_RATE_HZ = 10.0
 _DEFAULT_MAX_MISSED = 3
 _DEFAULT_COMMAND_TIMEOUT = 5.0
 _DEFAULT_CONNECT_TIMEOUT = 5.0
+# Homing ($H) is a full seek + pull-off + re-seek cycle across each axis' travel
+# — seconds to tens of seconds, far longer than a normal command. Give it its own
+# generous timeout so a long axis (e.g. X) is not aborted mid-home.
+_DEFAULT_HOME_TIMEOUT = 60.0
 
 
 class RealController:
@@ -79,6 +83,7 @@ class RealController:
         max_missed_status: int = _DEFAULT_MAX_MISSED,
         command_timeout: float = _DEFAULT_COMMAND_TIMEOUT,
         connect_timeout: float = _DEFAULT_CONNECT_TIMEOUT,
+        home_timeout: float = _DEFAULT_HOME_TIMEOUT,
     ) -> None:
         self._transport = transport
         self._streamer = CharacterCountingStreamer(
@@ -88,11 +93,13 @@ class RealController:
         self._max_missed = max_missed_status
         self._command_timeout = command_timeout
         self._connect_timeout = connect_timeout
+        self._home_timeout = home_timeout
         self._log = get_logger("controller.real")
 
         self._sm = StateMachine()
         self._connected = False
         self._streaming = False
+        self._homing = False  # a $H cycle is in flight (relax the missed-status guard)
         self._pending_acks: deque[asyncio.Future[None]] = deque()
         self._settings_buffer: dict[int, str] = {}
         self._settings = Settings(values={})
@@ -128,6 +135,12 @@ class RealController:
         self._wco = None  # fresh session: forget any previous machine's offset
         self._welcome_event.clear()
         self._reader_task = asyncio.create_task(self._read_loop())
+        # A just-powered device sends its banner unasked, but one that was already
+        # running (GUI restarted, cable re-seated) will not — so prompt it with a
+        # soft reset. grblHAL answers with a fresh welcome; a non-grbl device on the
+        # port simply ignores the byte and we still time out and move on.
+        with contextlib.suppress(Exception):
+            await self._transport.send_realtime(Realtime.SOFT_RESET)
         try:
             await asyncio.wait_for(self._welcome_event.wait(), self._connect_timeout)
         except TimeoutError as exc:
@@ -155,7 +168,14 @@ class RealController:
         self._require_connected()
         if self._sm.current not in (MachineState.IDLE, MachineState.ALARM):
             raise MachineNotReadyError(f"cannot home from {self._sm.current.value}")
-        await self._send_command(outbound.format_home(axes))
+        # Homing blocks in grblHAL for seconds (per-axis seek/pull-off/re-seek).
+        # Use the long home timeout, and flag it so the status-poll watchdog does
+        # not mistake the busy cycle for a dropped link (§8.5).
+        self._homing = True
+        try:
+            await self._send_command(outbound.format_home(axes), ack_timeout=self._home_timeout)
+        finally:
+            self._homing = False
 
     async def jog(self, axis: Axis, distance_mm: float, feed_mm_min: float) -> None:
         self._require_connected()
@@ -298,7 +318,14 @@ class RealController:
 
     async def _on_ack(self, message: Ok | Error) -> None:
         if self._streaming:
-            await self._streamer.acknowledge()
+            try:
+                await self._streamer.acknowledge()
+            except StreamingError:
+                # A stale ack for a line sent before a mid-program reset, arriving
+                # after the welcome cleared the streamer's accounting. Harmless —
+                # ignore it rather than letting it kill the reader loop.
+                self._log.warning("stale_ack_after_reset")
+                return
             if isinstance(message, Error):
                 self._log.warning("error_during_program", code=message.code)
             return
@@ -318,6 +345,11 @@ class RealController:
         # outstanding-byte accounting, and reset state.
         self._sm.reset(MachineState.IDLE)
         self._missed = 0
+        # A welcome means the device reset — any program in flight is aborted. Drop
+        # the streaming flag so post-reset commands (e.g. $X to clear the alarm a
+        # cancel leaves behind) are accepted instead of rejected with
+        # "cannot send a command while a program is streaming".
+        self._streaming = False
         self._streamer.reset()
         self._fail_pending(ConnectionLostError("device reset (welcome)"))
         self._welcome_event.set()
@@ -330,28 +362,30 @@ class RealController:
             if not self._connected:
                 return
             self._missed += 1
-            if self._missed >= self._max_missed:
+            # During a homing cycle the device is busy and may not answer ``?`` for
+            # a while; a real link drop is still caught by the reader (EOF). So we
+            # keep polling but do not declare a disconnect on missed reports here.
+            if self._missed >= self._max_missed and not self._homing:
                 await self._trigger_disconnect(f"{self._missed} consecutive missed status reports")
                 return
             with contextlib.suppress(NotConnectedError):
                 await self._transport.send_realtime(Realtime.STATUS_REPORT)
 
     # -- command plumbing ----------------------------------------------------
-    async def _send_command(self, line: str) -> None:
+    async def _send_command(self, line: str, *, ack_timeout: float | None = None) -> None:
         if self._streaming:
             raise StreamingError("cannot send a command while a program is streaming")
+        wait = self._command_timeout if ack_timeout is None else ack_timeout
         loop = asyncio.get_running_loop()
         future: asyncio.Future[None] = loop.create_future()
         self._pending_acks.append(future)
         await self._transport.send_line(line)
         try:
-            await asyncio.wait_for(future, self._command_timeout)
+            await asyncio.wait_for(future, wait)
         except TimeoutError as exc:
             with contextlib.suppress(ValueError):
                 self._pending_acks.remove(future)
-            raise CommandTimeoutError(
-                f"no response to {line!r} within {self._command_timeout}s"
-            ) from exc
+            raise CommandTimeoutError(f"no response to {line!r} within {wait}s") from exc
 
     # -- lifecycle -----------------------------------------------------------
     async def _trigger_disconnect(self, reason: str) -> None:

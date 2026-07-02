@@ -131,15 +131,42 @@ class SerialTransport:
         _log.info("serial_closed", port=self._port)
 
     async def send_line(self, line: str) -> None:
-        """Send one line (§5.2 buffered path)."""
+        """Send one line (§5.2 buffered path).
+
+        Throughput note (the streaming bottleneck): we deliberately do **not**
+        ``await writer.drain()`` here. ``drain()`` blocks until the line has
+        physically left the host, and the character-counting streamer (§5.1)
+        awaits this call before reserving and sending the *next* line — so a
+        per-line drain serialises the pipeline to one round-trip per line and
+        caps streaming at roughly one USB micro-frame per line (the symptom:
+        "uploading to the Pico is very slow"). Without it, ``write`` only queues
+        into the asyncio serial buffer and returns immediately, letting the
+        streamer fill grblHAL's RX buffer (up to several lines back-to-back, the
+        whole point of character counting) while the loop flushes the bytes in
+        the background.
+
+        This stays safe (no unbounded host-side buffering) because the streamer
+        only sends a line when grblHAL's RX buffer has room, and that room is
+        freed by ``ok``/``error`` acks — which the device emits only after it has
+        *received* the earlier bytes. So the wire backpressure bounds the host
+        buffer to the same ~``buffer_size`` (default 128 B) ceiling as the device
+        buffer. Realtime bytes still flush immediately (see ``send_realtime``),
+        and because they share ``_write_lock`` and the FIFO writer, draining one
+        also pushes any line bytes queued ahead of it.
+        """
         writer = self._require_writer()
         data = encode_line(line)
         async with self._write_lock:
             writer.write(data)
-            await writer.drain()
 
     async def send_realtime(self, byte: int) -> None:
-        """Send a single realtime byte immediately (§5.2)."""
+        """Send a single realtime byte immediately (§5.2).
+
+        Realtime commands (``?``, ``!``, ``~``, soft reset, jog cancel) are
+        latency-critical, so this path *does* drain: it flushes the byte — and,
+        since the writer is a FIFO, any line bytes queued ahead of it — out to
+        the host immediately rather than waiting for the next loop iteration.
+        """
         writer = self._require_writer()
         data = encode_realtime(byte)  # validates range
         async with self._write_lock:

@@ -1,0 +1,4 @@
+
+# editor / build artefacts (too big for git)
+.vscode/
+*.zip

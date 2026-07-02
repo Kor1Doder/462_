@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=dökan CNC
+Comment=CNC operator panel (cncctl GUI)
+# NOTE: Exec/Path must be ABSOLUTE. Edit the path below to where the repo lives,
+# e.g. /home/<user>/cncctl/pitrofit  (on the Pi5 panel) — then:
+#   chmod +x run-gui.sh
+#   cp deploy/cncctl-gui.desktop ~/.local/share/applications/   # menu entry
+#   cp deploy/cncctl-gui.desktop ~/Desktop/                     # desktop icon
+Exec=/home/mali/dökan/462_/pitrofit/run-gui.sh
+Path=/home/mali/dökan/462_/pitrofit
+Terminal=false
+Categories=Utility;Engineering;
